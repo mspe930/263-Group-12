@@ -30,3 +30,5 @@ Boundary constants for the reaction rates and other equations, e.g. porosity, re
 Assume?
 
 Assumes the reservoir and field operate under normal physics principles.
+Assume the cogeneration until now has had no seeping.
+Assume only mass changes are due to injection/extraction.
