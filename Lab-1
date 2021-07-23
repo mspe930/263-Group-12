@@ -14,6 +14,19 @@ Option 3 would be to increase injection rate, to a level lower than quadrupling.
 
 How?
 
+Modelling the CO2 concentration changes in the rock, pressure changes and net mass changes.
+Using a computer model to take the input data subject to physical laws and predict the result of quadrupling the CO2 injection rate. 
+We would build the model on a training set of data from the early period of the reservoir and calibrate using more recent data to ensure accuracy in future predictions. 
+
 Given?
 
+We have been given CO2 injection rates, extraction/production rates, pressure in the rock, CO2 concentration by wt% in the reservoir. 
+These data sets cover from the establishment of the reservoir in the 1980s to 2018.
+
+We would need to look up the government standards of freshwater. 
+Pre-exploitation value
+Boundary constants for the reaction rates and other equations, e.g. porosity, reaction rates
+
 Assume?
+
+Assumes the reservoir and field operate under normal physics principles.
