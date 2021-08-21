@@ -176,6 +176,10 @@ if __name__ == "__main__":
     ts_model,Ps_model = solve_pressure_ode(f=pressure_ode,t0=tmin,t1=tmax,dt=0.05,P0=P0,pars=[a,b,c])
 
     f,ax = plt.subplots(1,1)
-    ax.plot(Ps_data[0,:],Ps_data[1,:],'kx')
-    ax.plot(ts_model,Ps_model,'r-')
+    ax.plot(Ps_data[0,:],Ps_data[1,:],'kx',label='Measured Data')
+    ax.plot(ts_model,Ps_model,'r-',label='Fitted Model')
+    ax.set_xlabel('Year of observation [A.D.]')
+    ax.set_ylabel('Reservoir pressure [bars]')
+    ax.legend()
+    ax.set_title('Comparison of measured pressure and modelled pressure over time in the Ohaaki geothermal reservoir')
     plt.show()
