@@ -13,7 +13,7 @@ def pressure_ode(t, P, q, dqdt, P0, a, b, c):
         P : float
             Dependent variable, reservoir pressure.
         P0 : float
-            Ambient value of dependent variable.
+            Initial value of independent variable.
         q : float
             Mass flow rate into reservoir. 
         dqdt : float
@@ -35,7 +35,7 @@ def pressure_ode(t, P, q, dqdt, P0, a, b, c):
         Parameters must be passed in the above order.
     '''
     # calculates dP/dt using ODE
-    dPdt = -1*a*q - b*(P-P0) - c*dqdt
+    dPdt = -1*a*q - b*(P-1.01325) - c*dqdt
     return dPdt
 
 
@@ -56,13 +56,13 @@ def interpolate_mass_flow(ts):
     # reads injection rates of CO2
     qco2 = np.genfromtxt('cs_c.txt',dtype=float,delimiter=', ',skip_header=1).T
     # reads extraction rates of water
-    qwater = np.genfromtxt('cs_p.txt',dtype=float,delimiter=', ',skip_header=1).T
+    qwater = np.genfromtxt('cs_q.txt',dtype=float,delimiter=', ',skip_header=1).T
 
     # interpolates injection rates for given times
-    fco2 = interp1d(qco2[:,0],qco2[:,1],kind='linear',fill_value="extrapolate")
+    fco2 = interp1d(qco2[0,:],qco2[1,:],kind='linear',fill_value=(0.,0.),bounds_error=False)
     qco2_fit = fco2(ts)
     # interpolates extraction rates for given times
-    fwater = interp1d(qwater[:,0],qwater[:,1],kind='linear',fill_value="extrapolate")
+    fwater = interp1d(qwater[0,:],qwater[1,:],kind='linear',fill_value=(0.,0.),bounds_error=False)
     qwater_fit = fwater(ts)
 
     # computes net mass flow rates = injection - extraction
@@ -101,9 +101,10 @@ def compute_dqdt(ts, qs):
     # loop over each paired measurement
     for i in range(len(ts)-1):
         # computes dq/dt at each measurement time
-        dqdts[i] = (qs[i+1] - qs[i])/(ts[i+1] - ts[i])
+        deltat = ts[i+1]-ts[i]
+        dqdts[i] = (qs[i+1] - qs[i])/deltat
     
-    return dqdts
+    return dqdts 
 
 
 def solve_pressure_ode(f,t0,t1,dt,P0,pars=[]):
@@ -120,7 +121,7 @@ def solve_pressure_ode(f,t0,t1,dt,P0,pars=[]):
         dt : float
             Step size length.
         P0 : float
-            Ambient reservoir pressure (initial value of solution).
+            Initial pressure value of solution.
         pars : array-like
             List of lumped parameters passed to function f.
         
@@ -152,7 +153,7 @@ def solve_pressure_ode(f,t0,t1,dt,P0,pars=[]):
         # compute f0 term 
         f0 = f(ts[i],Ps[i],qs[i],dqdts[i],P0,*pars)
         # compute f1 term
-        f1 = f(ts[i+1],Ps[i]+dt*f0,qs[i],dqdts[i],P0,*pars)
+        f1 = f(ts[i+1],Ps[i]+dt*f0,qs[i+1],dqdts[i+1],P0,*pars)
         # find next step of pressure
         Ps[i+1] = Ps[i] + 0.5*dt*(f0+f1)
 
@@ -165,19 +166,16 @@ if __name__ == "__main__":
     Ps_data = np.genfromtxt('cs_p.txt',dtype=float,delimiter=', ',skip_header=1).T
     tmin = Ps_data[0,0]
     tmax = Ps_data[0,-1]
-    print(tmin)
-    print(tmax)
-    
+        
     P0 = Ps_data[1,0]
-    a = 1.e-3
-    b = 1.e-1
-    c = 1.e-4
+    
+    a = 8.e-5
+    b = 1.e-2
+    c = 7.e-3
 
     ts_model,Ps_model = solve_pressure_ode(f=pressure_ode,t0=tmin,t1=tmax,dt=0.05,P0=P0,pars=[a,b,c])
-    
+
     f,ax = plt.subplots(1,1)
     ax.plot(Ps_data[0,:],Ps_data[1,:],'kx')
     ax.plot(ts_model,Ps_model,'r-')
     plt.show()
-
-
