@@ -73,3 +73,31 @@ def concentration_ode(t, c, c0, P, P0, qco2, M0, a, b, d):
     # sum all terms to find time derivative of CO2 concentration
     dcdt = termOne + termTwo + termThree
     return dcdt
+
+def interpolate_injection(ts):
+    ''' Reads CO2 mass injection rates and interpolates this to a given vector of times.
+
+        Parameters
+        ---------
+        ts : array-like
+            Vector of times to interpolate at.
+
+        Returns
+        -------
+        qs : array-like
+            Vector of CO2 mass injection rates for given times in ts.
+    '''
+    # reads injection data from file
+    injection_data = np.genfromtxt('cs_c.txt',dtype=float,delimiter=', ',skip_header=1).T
+    # first row of data is times
+    ts_data = injection_data[0,:]
+    # second row of data is corresponding injection rates
+    qco2_data = injection_data[1,:]
+
+    # create interpolation function for data
+    f = interp1d(ts_data,qco2_data,kind='linear',fill_value=(0.,0.),bounds_error=False)
+    # interpolates mass injection rates for given times
+    qs = f(ts)
+    return qs
+
+
