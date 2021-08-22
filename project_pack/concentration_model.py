@@ -3,6 +3,7 @@ from scipy import interpolate
 from scipy.interpolate import interp1d
 from matplotlib import pyplot as plt
 from pressure_model import *
+import gradient_descent as gd
 
 def c_dash(c,c0,P,P0):
     ''' Returns the piece-wise C' term in the CO2 concentration ODE.
@@ -91,7 +92,7 @@ def interpolate_injection(ts):
             Vector of CO2 mass injection rates for given times in ts.
     '''
     # reads injection data from file
-    injection_data = np.genfromtxt('cs_c.txt',dtype=float,delimiter=', ',skip_header=1).T
+    injection_data = np.genfromtxt('data_sources/cs_c.txt',dtype=float,delimiter=', ',skip_header=1).T
     # first row of data is times
     ts_data = injection_data[0,:]
     # second row of data is corresponding injection rates
@@ -154,8 +155,18 @@ def solve_concentration_ode(f,t0,t1,dt,C0,P0,pars=[]):
     
     return ts,cs
     
+def concentration_objective_function(theta, model):
+    # Calculate the model
+    model['pars'] = theta
+    ts_model, Ps_model = solve_concentration_ode(**model)
+
+    # Min sum of square errors
+    # sum(y_i - f(x_i, theta))**2
+    cali_data = interpolate_pressure(ts_model)
+    return np.sum((abs(cali_data - Ps_model)**2)) 
+    
 if __name__ == "__main__":
-    cs_data = np.genfromtxt('cs_cc.txt',dtype=float,delimiter=', ',skip_header=1).T
+    cs_data = np.genfromtxt('data_sources/cs_cc.txt',dtype=float,delimiter=', ',skip_header=1).T
     ts_data = cs_data[0,:]
     tmin = ts_data[0]
     tmax = ts_data[-1]
@@ -173,9 +184,22 @@ if __name__ == "__main__":
     d = 5.e-1
     ####################################################
 
-    pars = [M0,a,b,c,d]
+    theta = [M0,a,b,c,d]
 
-    ts_model,cs_model = solve_concentration_ode(f=concentration_ode,t0=tmin,t1=tmax,dt=0.05,C0=cs_data[0],P0=P0,pars=pars)
+    model = {
+        'f' : concentration_ode,
+        't0' : tmin,
+        't1' : tmax,
+        'dt' : 0.05,
+        'C0' : cs_data[0],
+        'P0' : P0,
+        'pars' : theta
+    }
+
+    theta = gd.grad_descent(concentration_objective_function, theta, 100, model)
+    
+    
+    ts_model,cs_model = solve_concentration_ode(**model)
 
     f,ax = plt.subplots(1,1)
     ax.plot(ts_model,cs_model,'r-',label='Fitted Model')

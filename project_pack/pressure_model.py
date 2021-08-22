@@ -2,6 +2,7 @@ import numpy as np
 from scipy import interpolate
 from scipy.interpolate import interp1d
 from matplotlib import pyplot as plt
+import gradient_descent as gd
 
 def pressure_ode(t, P, q, dqdt, P0, M0, a, b, c, d):
     ''' Returns time derivative of reservoir pressure, dP/dt, for given parameters.
@@ -40,7 +41,6 @@ def pressure_ode(t, P, q, dqdt, P0, M0, a, b, c, d):
     dPdt = -1*a*q - b*(P-1.01325) - c*dqdt
     return dPdt
 
-
 def interpolate_mass_flow(ts):
     ''' Reads injection and production rates, interpolates this data, and calculates
         the net mass flow into the reservoir. 
@@ -56,9 +56,9 @@ def interpolate_mass_flow(ts):
             Vector of net mass flow rates for given times. 
     '''
     # reads injection rates of CO2
-    qco2 = np.genfromtxt('cs_c.txt',dtype=float,delimiter=', ',skip_header=1).T
+    qco2 = np.genfromtxt('data_sources/cs_c.txt',dtype=float,delimiter=', ',skip_header=1).T
     # reads extraction rates of water
-    qwater = np.genfromtxt('cs_q.txt',dtype=float,delimiter=', ',skip_header=1).T
+    qwater = np.genfromtxt('data_sources/cs_q.txt',dtype=float,delimiter=', ',skip_header=1).T
 
     # interpolates injection rates for given times
     fco2 = interp1d(qco2[0,:],qco2[1,:],kind='linear',fill_value=(0.,0.),bounds_error=False)
@@ -72,6 +72,27 @@ def interpolate_mass_flow(ts):
     # returns vector of net mass flow rates
     return qs
 
+def interpolate_pressure(ts):
+    ''' Reads injection and production rates, interpolates this data, and calculates
+        the pressure in the reservoir. 
+
+        Parameters
+        ----------
+        ts : array-like
+            Vector of times to interpolate.
+        
+        Returns
+        -------
+        qs : array-like
+            Vector of pressures for given times. 
+    '''
+    pressure_data = np.genfromtxt('data_sources/cs_p.txt',dtype=float,delimiter=', ',skip_header=1).T
+
+    # interpolates injection rates for given times
+    fp = interp1d(pressure_data[0,:], pressure_data[1,:], kind='linear', fill_value=(0.,0.), bounds_error=False)
+    fp_fit = fp(ts)
+
+    return fp_fit 
 
 def compute_dqdt(ts, qs):
     ''' Computes the time derivative of net mass flow rates, dq/dt. 
@@ -107,7 +128,6 @@ def compute_dqdt(ts, qs):
         dqdts[i] = (qs[i+1] - qs[i])/deltat
     
     return dqdts 
-
 
 def solve_pressure_ode(f,t0,t1,dt,P0,pars=[]):
     ''' Solves pressure ODE numerically using the Improved Euler Method.
@@ -162,10 +182,36 @@ def solve_pressure_ode(f,t0,t1,dt,P0,pars=[]):
     # return time and pressure solution vectors
     return ts,Ps
     
+def pressure_objective_function(theta, model):
+    # Calculate the model
+    tmp = model['pars']
+    model['pars'][1:len(theta)+1] = theta 
+    ts_model, Ps_model = solve_pressure_ode(**model)
+    model['pars'] = tmp
+
+    # Min sum of square errors
+    # sum(y_i - f(x_i, theta))**2
+    #cali_data = interpolate_pressure(ts_model)
+    #return np.sum((abs(cali_data - Ps_model)**2)) # In MPa
+
+def plot_model(theta, model):
+    model['pars'][1:len(theta)+1] = theta 
+    ts_model,Ps_model = solve_pressure_ode(**model)
+
+    # Print an objective function for the model:
+    print("Objective Function:", well_obj(theta, model))
+
+    f,ax = plt.subplots(1,1)
+    ax.plot(Ps_data[0,:],Ps_data[1,:],'kx',label='Measured Data')
+    ax.plot(ts_model,Ps_model,'r-',label='Fitted Model')
+    ax.set_xlabel('Year of observation [A.D.]')
+    ax.set_ylabel('Reservoir pressure [MPa]')
+    ax.legend()
+    ax.set_title('Comparison of measured pressure and modelled pressure over time in the Ohaaki geothermal reservoir')
+    plt.show()
 
 if __name__ == "__main__":
-
-    Ps_data = np.genfromtxt('cs_p.txt',dtype=float,delimiter=', ',skip_header=1).T
+    Ps_data = np.genfromtxt('data_sources/cs_p.txt',dtype=float,delimiter=', ',skip_header=1).T
     tmin = Ps_data[0,0]
     tmax = Ps_data[0,-1]
         
@@ -180,13 +226,27 @@ if __name__ == "__main__":
     d = 5.e-1   # does not contribute to this model
     #####################################################################
 
-    ts_model,Ps_model = solve_pressure_ode(f=pressure_ode,t0=tmin,t1=tmax,dt=0.05,P0=P0,pars=[M0,a,b,c,d])
+    model = {
+        'f' : pressure_ode,
+        't0' : tmin,
+        't1' : tmax,
+        'dt' : 0.05,
+        'P0' : P0,
+        'pars' : [M0,a,b,c,d]
+    }
 
-    f,ax = plt.subplots(1,1)
-    ax.plot(Ps_data[0,:],Ps_data[1,:],'kx',label='Measured Data')
-    ax.plot(ts_model,Ps_model,'r-',label='Fitted Model')
-    ax.set_xlabel('Year of observation [A.D.]')
-    ax.set_ylabel('Reservoir pressure [MPa]')
-    ax.legend()
-    ax.set_title('Comparison of measured pressure and modelled pressure over time in the Ohaaki geothermal reservoir')
-    plt.show()
+    # Trained on mean error
+    #theta = [-0.00131471, 0.05528635, 0.00211734] 
+    #theta = [-2.54869751e-05, 1.00289106e-02, 5.73287692e-03]
+    #theta = [-2.11905963e-05, 9.99749257e-03, 5.98935644e-03]
+
+    # Trained on mean-square error
+    #theta = [0.00028498, 0.00101189, 0.00599222]
+    #theta = [0, 1.e-3, 6.e-3]
+    #theta = [0.0002892, 0.00122505, 0.00517294]
+    #theta = [-2.45714621e-05, 1.15000715e-02, 4.20912094e-03]
+    theta = [-1.96091016e-05, 1.14407243e-02, 3.4755337e-03]
+    
+    #theta = gd.grad_descent(pressure_objective_function, theta, 10000, model)
+    
+    plot_model(theta, model) 
