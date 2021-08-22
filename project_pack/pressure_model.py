@@ -3,7 +3,7 @@ from scipy import interpolate
 from scipy.interpolate import interp1d
 from matplotlib import pyplot as plt
 
-def pressure_ode(t, P, q, dqdt, P0, a, b, c, d):
+def pressure_ode(t, P, q, dqdt, P0, M0, a, b, c, d):
     ''' Returns time derivative of reservoir pressure, dP/dt, for given parameters.
 
         Parameters
@@ -171,12 +171,13 @@ if __name__ == "__main__":
         
     P0 = Ps_data[1,0]
     
+    M0 = 1.e9
     a = 8.e-5
     b = 1.e-2
     c = 7.e-3
     d = 1.e-1
 
-    ts_model,Ps_model = solve_pressure_ode(f=pressure_ode,t0=tmin,t1=tmax,dt=0.05,P0=P0,pars=[a,b,c,d])
+    ts_model,Ps_model = solve_pressure_ode(f=pressure_ode,t0=tmin,t1=tmax,dt=0.05,P0=P0,pars=[M0,a,b,c,d])
 
     f,ax = plt.subplots(1,1)
     ax.plot(Ps_data[0,:],Ps_data[1,:],'kx',label='Measured Data')
