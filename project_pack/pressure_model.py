@@ -171,11 +171,14 @@ if __name__ == "__main__":
         
     P0 = Ps_data[1,0]
     
-    M0 = 1.e9
-    a = 8.e-5
-    b = 1.e-2
-    c = 7.e-3
-    d = 1.e-1
+    #####################################################################
+    ## CHANGE ONLY THE CONSTANTS a, b, c TO AFFECT OUR PRESSURE MODEL ###
+    M0 = 5.e3   # does not contribute to this model
+    a = 8.e-5   # <- change this
+    b = 1.e-2   # <- change this
+    c = 7.e-3   # <- change this 
+    d = 5.e-1   # does not contribute to this model
+    #####################################################################
 
     ts_model,Ps_model = solve_pressure_ode(f=pressure_ode,t0=tmin,t1=tmax,dt=0.05,P0=P0,pars=[M0,a,b,c,d])
 
