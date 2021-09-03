@@ -34,7 +34,7 @@ def c_dash(c,c0,P,P0):
     return c_dash
 
 
-def concentration_ode(t, C, C0, P, P0, qco2, M0, a, b, c, d):
+def concentration_ode(t, C, C0, P, qco2, M0, a, b, c, d, P0):
     ''' Returns time derivative of CO2 concentration in the reservoir, for given parameters.
 
         Parameters
@@ -47,8 +47,6 @@ def concentration_ode(t, C, C0, P, P0, qco2, M0, a, b, c, d):
             Ambient CO2 concentration.
         P : float
             Pressure of reservoir.
-        P0 : float
-            Ambient pressure of reservoir.
         qco2 : float
             Rate of CO2 injection. 
         M0 : float
@@ -61,6 +59,8 @@ def concentration_ode(t, C, C0, P, P0, qco2, M0, a, b, c, d):
             Slow drainage strength lumped parameter.
         d : float
             Diffusion strength lumped parameter.
+        P0 : float
+            Ambient pressure of reservoir.
         
         Returns
         -------
@@ -103,7 +103,7 @@ def interpolate_injection(ts):
     qs = f(ts)
     return qs
 
-def solve_concentration_ode(f,t0,t1,dt,C0,P0,pars=[]):
+def solve_concentration_ode(f,t0,t1,dt,C0,pars=[]):
     ''' Solves CO2 concentration ODE numerically using the Improved Euler Method.
 
         Parameters
@@ -145,11 +145,11 @@ def solve_concentration_ode(f,t0,t1,dt,C0,P0,pars=[]):
     # find CO2 injection rates for each time
     qs = interpolate_injection(ts)
     # solve for pressures 
-    ts,Ps = solve_pressure_ode(f=pressure_ode,t0=t0,t1=t1,dt=dt,P0=P0,pars=pars)
+    ts,Ps = solve_pressure_ode(f=pressure_ode,t0=t0,t1=t1,dt=dt,P0=pars[-1],pars=pars)
 
     for i in range(npoints-1):
-        f0 = f(ts[i],cs[i],C0,Ps[i],P0,qs[i],*pars)
-        f1 = f(ts[i+1],cs[i]+dt*f0,C0,Ps[i],P0,qs[i+1],*pars)
+        f0 = f(ts[i],cs[i],C0,Ps[i],qs[i],*pars)
+        f1 = f(ts[i+1],cs[i]+dt*f0,C0,Ps[i],qs[i+1],*pars)
         cs[i+1] = cs[i] + 0.5*dt*(f0+f1)
     
     return ts,cs
@@ -162,8 +162,6 @@ if __name__ == "__main__":
     cs_data = cs_data[1,:]
     c0 = cs_data[0]
 
-    P0 = 6.17e+00
-
     ####################################################
     ## ALL OF THESE CONSTANTS CHANGE OUR MODEL #########
     M0 = 5.e3           # note this is mass of co2 not the mass of our entire reservoir
@@ -171,11 +169,12 @@ if __name__ == "__main__":
     b = 1.e-2
     c = 7.e-3
     d = 5.e-1
+    P0 = 6.17e+00
     ####################################################
 
-    pars = [M0,a,b,c,d]
+    pars = [M0,a,b,c,d,P0]
 
-    ts_model,cs_model = solve_concentration_ode(f=concentration_ode,t0=tmin,t1=tmax,dt=0.05,C0=cs_data[0],P0=P0,pars=pars)
+    ts_model,cs_model = solve_concentration_ode(f=concentration_ode,t0=tmin,t1=tmax,dt=0.05,C0=cs_data[0],pars=pars)
 
     f,ax = plt.subplots(1,1)
     ax.plot(ts_model,cs_model,'r-',label='Fitted Model')
