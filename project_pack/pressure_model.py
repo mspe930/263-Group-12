@@ -182,7 +182,7 @@ def solve_pressure_ode(f,t0,t1,dt,P0,pars=[]):
     # return time and pressure solution vectors
     return ts,Ps
     
-def pressure_objective_function(theta, model):
+def pressure_objective_function(theta, model, n=40):
     # Calculate the model
     tmp = model['pars']
     model['pars'][1:len(theta)+1] = theta 
@@ -191,15 +191,29 @@ def pressure_objective_function(theta, model):
 
     # Min sum of square errors
     # sum(y_i - f(x_i, theta))**2
+    # This is actually the wrong way around. We shouldn't have
+    # to interpolate the data to calculate the objective function
     #cali_data = interpolate_pressure(ts_model)
     #return np.sum((abs(cali_data - Ps_model)**2)) # In MPa
+    
+    pressure_data = np.genfromtxt('data_sources/cs_p.txt',dtype=float,delimiter=', ',skip_header=1).T
+    
+    # The more verbose (and slower way) of finding intersection
+    #intersection_indexs = [index for index, x in enumerate(np.round(ts_model, 2)) if x in pressure_data[0, :]]
+    
+    # The faster way using numpy
+    # We need to round ts_model as IEU introduces some floating point error
+    intersection = np.in1d(np.round(ts_model, 2), pressure_data[0, :n])
+    return np.sum((pressure_data[1, :n] - Ps_model[intersection])**2)
 
 def plot_model(theta, model):
     model['pars'][1:len(theta)+1] = theta 
     ts_model,Ps_model = solve_pressure_ode(**model)
+    Ps_data = np.genfromtxt('data_sources/cs_p.txt',dtype=float,delimiter=', ',skip_header=1).T
 
     # Print an objective function for the model:
-    print("Objective Function:", well_obj(theta, model))
+    print("Objective Function:", pressure_objective_function(theta, model))
+    print("Theta:", theta)
 
     f,ax = plt.subplots(1,1)
     ax.plot(Ps_data[0,:],Ps_data[1,:],'kx',label='Measured Data')
@@ -230,7 +244,7 @@ if __name__ == "__main__":
         'f' : pressure_ode,
         't0' : tmin,
         't1' : tmax,
-        'dt' : 0.05,
+        'dt' : 0.01,
         'P0' : P0,
         'pars' : [M0,a,b,c,d]
     }
@@ -246,7 +260,16 @@ if __name__ == "__main__":
     #theta = [0.0002892, 0.00122505, 0.00517294]
     #theta = [-2.45714621e-05, 1.15000715e-02, 4.20912094e-03]
     theta = [-1.96091016e-05, 1.14407243e-02, 3.4755337e-03]
+    #theta = [2, 1.14407243, 3.4755337]
     
-    #theta = gd.grad_descent(pressure_objective_function, theta, 10000, model)
+    # Trying to permutate into global minima
+    #theta = [0, 7.0e-2, 3.7e-3]
+    #theta = [-0.00129148, 0.05633249, 0.00220841]
+    #theta = [-5.31699010e-01, 3.07337115e+01, 4.61647482e-03]
+    
+    # Weighted m-s-e
+    
+    #theta = gd.grad_descent(pressure_objective_function, theta, 1e-4, 10000, model)
+    #pressure_objective_function(theta, model)
     
     plot_model(theta, model) 

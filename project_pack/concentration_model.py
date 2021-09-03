@@ -104,6 +104,28 @@ def interpolate_injection(ts):
     qs = f(ts)
     return qs
 
+def interpolate_concentration(ts):
+    ''' Reads injection and production rates, interpolates this data, and calculates
+        the C02 concentration in the reservoir. 
+
+        Parameters
+        ----------
+        ts : array-like
+            Vector of times to interpolate.
+        
+        Returns
+        -------
+        qs : array-like
+            Vector of pressures for given times. 
+    '''
+    conc_data = np.genfromtxt('data_sources/cs_cc.txt',dtype=float,delimiter=', ',skip_header=1).T
+
+    # interpolates injection rates for given times
+    cp = interp1d(conc_data[0,:], conc_data[1,:], kind='linear', fill_value=(0.,0.), bounds_error=False)
+    cp_fit = cp(ts)
+
+    return cp_fit 
+
 def solve_concentration_ode(f,t0,t1,dt,C0,P0,pars=[]):
     ''' Solves CO2 concentration ODE numerically using the Improved Euler Method.
 
@@ -162,8 +184,8 @@ def concentration_objective_function(theta, model):
 
     # Min sum of square errors
     # sum(y_i - f(x_i, theta))**2
-    cali_data = interpolate_pressure(ts_model)
-    return np.sum((abs(cali_data - Ps_model)**2)) 
+    cali_data = interpolate_concentration(ts_model)
+    return np.sum((cali_data - Ps_model)**2) 
     
 if __name__ == "__main__":
     cs_data = np.genfromtxt('data_sources/cs_cc.txt',dtype=float,delimiter=', ',skip_header=1).T
@@ -185,6 +207,8 @@ if __name__ == "__main__":
     ####################################################
 
     theta = [M0,a,b,c,d]
+    # Takes MSQ from 0.0026 to 0.001891
+    theta = [5000, 0.0003726172350728841, 0.009986495984971422, 0.007004749980668344, 0.5000110235595416]
 
     model = {
         'f' : concentration_ode,
@@ -196,8 +220,7 @@ if __name__ == "__main__":
         'pars' : theta
     }
 
-    theta = gd.grad_descent(concentration_objective_function, theta, 100, model)
-    
+    #theta = gd.grad_descent(concentration_objective_function, theta, 1.e-4, 1000, model)
     
     ts_model,cs_model = solve_concentration_ode(**model)
 

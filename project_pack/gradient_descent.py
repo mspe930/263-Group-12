@@ -30,7 +30,7 @@ def obj_dir(obj, theta, model=None):
     for i in range(len(theta)):
         # basis vector in parameter direction 
         eps_i = np.zeros(len(theta))
-        eps_i[i] = 1e-6
+        eps_i[i] = 1.e-3
         
         # compute objective function at incremented parameter
         si = obj(theta+dtheta*eps_i, model)
@@ -107,16 +107,15 @@ def line_search(obj, theta, s, model):
     # return step size
     return alpha
 
-def grad_descent(obj, theta0, N_max, model):
+def grad_descent(obj, theta0, alpha, N_max, model, plot_f):
     theta_all = [theta0]
     s_all = [obj_dir(obj, theta_all[-1], model)]
     N_it = 0
-    alpha = 9e-10
     lowest = (9999999., [])
     #while obj(theta_all[-1], model) > 200:
     while N_max - N_it > 0:
         # Line search algorithim
-        #alpha = gd.line_search(obj, theta_all[-1], s_all[-1], model)
+        #alpha = line_search(obj, theta_all[-1], s_all[-1], model)
          
         #if N_it % 1000:
         #    import random
@@ -137,9 +136,7 @@ def grad_descent(obj, theta0, N_max, model):
         s0 = 1.*s_next
         cost = obj(theta_all[-1], model)
 
-        if cost < lowest[0]:
-            lowest = (cost, model)
-        print(cost)
+        plot_f(theta_all[-1], model)
 
     print('Number of iterations needed: ', N_it)
 
