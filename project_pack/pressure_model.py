@@ -3,7 +3,7 @@ from scipy import interpolate
 from scipy.interpolate import interp1d
 from matplotlib import pyplot as plt
 
-def pressure_ode(t, P, q, dqdt, P0, M0, a, b, c, d):
+def pressure_ode(t, P, q, dqdt, M0, a, b, c, d, P0):
     ''' Returns time derivative of reservoir pressure, dP/dt, for given parameters.
 
         Parameters
@@ -12,12 +12,13 @@ def pressure_ode(t, P, q, dqdt, P0, M0, a, b, c, d):
             Independent variable, time.
         P : float
             Dependent variable, reservoir pressure.
-        P0 : float
-            Initial value of independent variable.
         q : float
             Mass flow rate into reservoir. 
         dqdt : float
             Rate of change of mass flow rate into reservoir.
+        M0 : float
+            (Unused: required for consistency).
+            The total mass of CO2 in the reservoir. 
         a : float
             Source/sink strength lumped parameter.
         b : float
@@ -37,7 +38,7 @@ def pressure_ode(t, P, q, dqdt, P0, M0, a, b, c, d):
         Parameters must be passed in the above order.
     '''
     # calculates dP/dt using ODE
-    dPdt = -1*a*q - b*(P-1.01325) - c*dqdt
+    dPdt = -1*a*q - b*(P-P0) - c*dqdt
     return dPdt
 
 
@@ -134,8 +135,14 @@ def solve_pressure_ode(f,t0,t1,dt,P0,pars=[]):
         Ps : array-like
             Dependent variable solution vector.
         
-
-    DESCRIPTION INCOMPLETE - need to do notes section explaining order [a,b,c] of inputs to f
+        Notes
+        -----
+        Assume that the ODE function f takes the following inputs, in order:
+            (i)   independent variable
+            (ii)  dependent variable
+            (iii) forcing term, q
+            (iv)  time derivative of forcing term, dq/dt
+            (v)   all other parameters
 
     '''
     # compute number of steps taken for IEM
@@ -153,9 +160,9 @@ def solve_pressure_ode(f,t0,t1,dt,P0,pars=[]):
     # loop through each step in the IEM
     for i in range(npoints-1):
         # compute f0 term 
-        f0 = f(ts[i],Ps[i],qs[i],dqdts[i],P0,*pars)
+        f0 = f(ts[i],Ps[i],qs[i],dqdts[i],*pars)
         # compute f1 term
-        f1 = f(ts[i+1],Ps[i]+dt*f0,qs[i+1],dqdts[i+1],P0,*pars)
+        f1 = f(ts[i+1],Ps[i]+dt*f0,qs[i+1],dqdts[i+1],*pars)
         # find next step of pressure
         Ps[i+1] = Ps[i] + 0.5*dt*(f0+f1)
 
@@ -168,19 +175,18 @@ if __name__ == "__main__":
     Ps_data = np.genfromtxt('cs_p.txt',dtype=float,delimiter=', ',skip_header=1).T
     tmin = Ps_data[0,0]
     tmax = Ps_data[0,-1]
-        
     P0 = Ps_data[1,0]
     
     #####################################################################
-    ## CHANGE ONLY THE CONSTANTS a, b, c TO AFFECT OUR PRESSURE MODEL ###
-    M0 = 5.e3   # does not contribute to this model
-    a = 8.e-5   # <- change this
-    b = 1.e-2   # <- change this
-    c = 7.e-3   # <- change this 
-    d = 5.e-1   # does not contribute to this model
+    M0 = 5.e3       # DOES NOT effect this model
+    a = 5.e-3       # effects model
+    b = 5.e-1       # effects model
+    c = 5.e-4       # effects model
+    d = 5.e-1       # DOES NOT effect this model
+    Pamb = P0       # hard-coded initial pressure of reservoir
     #####################################################################
 
-    ts_model,Ps_model = solve_pressure_ode(f=pressure_ode,t0=tmin,t1=tmax,dt=0.05,P0=P0,pars=[M0,a,b,c,d])
+    ts_model,Ps_model = solve_pressure_ode(f=pressure_ode,t0=tmin,t1=tmax,dt=0.05,P0=P0,pars=[M0,a,b,c,d,Pamb])
 
     f,ax = plt.subplots(1,1)
     ax.plot(Ps_data[0,:],Ps_data[1,:],'kx',label='Measured Data')
