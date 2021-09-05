@@ -5,7 +5,6 @@
 <details open="open">
   <summary>Table of Contents</summary>
   <ol>
-    <li>
     <li><a href="#discription">Discription</a></li>
     <li><a href="#installation">Installation</a></li>
     <li><a href="#usage">Usage</a></li>
