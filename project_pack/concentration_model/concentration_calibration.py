@@ -18,14 +18,18 @@ def main():
     ts_data = data[0,:]
     Cs_data = data[1,:]
 
+    # calibrate a, b, c and P0 using the pressure calibration script
     a,b,c,P0 = pressure_calibration.main()
-
+    # initial parameter guess
     pars0 = [5.e+03, a, b, c, 5.e-01, P0]
-    pars_error = [10e8, .001*a, .001*b, .001*c, 1.e00, .001*P0]
 
-    bounds = ([sum(x) for x in zip(pars0,[-1*e for e in pars_error])], [sum(x) for x in zip(pars0,pars_error)] )
+    # bounding radii for parameters
+    # a, b, c are already calibrated and P0 is fixed so all of these have a very small radius
+    bounding_radius = [10e8, .001*a, .001*b, .001*c, 1.e00, .001*P0]
+    # set bounding intervals for parameters
+    pars_bounds = ([sum(x) for x in zip(pars0,[-1*e for e in bounding_radius])], [sum(x) for x in zip(pars0,bounding_radius)] )
 
-    p,_ = curve_fit(concentration_model,ts_data,Cs_data,p0=pars0,bounds=bounds)
+    p,_ = curve_fit(concentration_model,ts_data,Cs_data,p0=pars0,bounds=pars_bounds)
 
     print("\nAdditional parameter estimations for concentration model:")
     print(" "*5, end="")
