@@ -5,10 +5,35 @@ from scipy.interpolate import interp1d
 from pressure_model import *
 
 def pressure_model(t,M0,a,b,c,d,P0):
+    ''' Uses our pressure model to compute the reservoir pressure at a list of time data given the model parameters.
+
+        Parameters 
+        ----------
+        t : array-like
+            List of time data to compute the reservoir pressure at.
+        M0 : float
+            Parameter - initial mass of CO2 in reservoir. This is unused in the pressure model but is required for
+            consistency with our concentration model.
+        a : float
+            Source/sink strength lumped parameter.
+        b : float
+            Recharge strength lumped parameter.
+        c : float
+            Slow drainage strength lumped parameter.
+        d : float
+            Diffusion strength lumped parameter. Unused in pressure model but required for consistency with our concentration model.
+        P0 : float
+            Parameter - initial reservoir pressure.
+    
+    '''
+    # store input parameters as an array
     pars = np.array([M0,a,b,c,d,P0])
+    # use pressure model to compute pressure at a range of times
     ts,Ps = solve_pressure_ode(f=pressure_ode,t0=ts_data[0],t1=t[-1],dt=0.2,P0=Ps_data[0],pars=pars)
+    # interpolate solved pressures to the list of given time data
     f = interp1d(ts,Ps,kind='linear',bounds_error=False)
     Ps = f(t)
+    # return list of pressures at the given list of time data 
     return Ps
 
 def main():
@@ -31,6 +56,7 @@ def main():
     # using gradient descent method to compute the best fit parameters
     p,_ = curve_fit(pressure_model,ts_data,Ps_data,p0=pars0,bounds=bounds)
 
+    # print the estimated lumped parameters a, b and c
     print("Best fit parameter estimation for pressure model: ")
     print(" "*5, end="")
     print("a = {:1.2e}".format(p[1]))
