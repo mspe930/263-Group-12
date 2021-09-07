@@ -100,6 +100,7 @@ def concentration_ode(t, C, C0, P, qco2, M0, a, b, c, d, P0):
     dCdt = termOne + termTwo + termThree
     return dCdt
 
+
 def interpolate_injection(ts):
     ''' Reads CO2 mass injection rates and interpolates this to a given vector of times.
 
@@ -125,6 +126,7 @@ def interpolate_injection(ts):
     # interpolates mass injection rates for given times
     qs = f(ts)
     return qs
+
 
 def solve_concentration_ode(f,t0,t1,dt,C0,pars=[]):
     ''' Solves CO2 concentration ODE numerically using the Improved Euler Method.
@@ -179,35 +181,44 @@ def solve_concentration_ode(f,t0,t1,dt,C0,pars=[]):
         # computes next step 
         cs[i+1] = cs[i] + 0.5*dt*(f0+f1)
     return ts,cs
+
     
-    
-if __name__ == "__main__":
-    cs_data = np.genfromtxt('cs_cc.txt',dtype=float,delimiter=', ',skip_header=1).T
-    ts_data = cs_data[0,:]
+def plot_concentration(pars):
+    ''' Plots the LP CO2 concentration model given a list of model parameters.
+
+        Parameters
+        ----------
+        pars : array-like
+            List of model parameters in the form (M0, a, b, c, d, P0).
+
+        Returns
+        -------
+        None
+    '''
+    # read concentration data 
+    ts_data,Cs_data = fetch_concentration_data()
+    # sets initial and final times
     tmin = ts_data[0]
     tmax = ts_data[-1]
-    cs_data = cs_data[1,:]
-    c0 = cs_data[0]
+    # sets initial concentration 
+    C0 = Cs_data[0]
 
-    ####################################################
-    ## ALL OF THESE CONSTANTS CHANGE OUR MODEL #########
-    M0 = 8.29e+03           # note this is mass of co2 not the mass of our entire reservoir
-    a = 1.92e-03
-    b = 1.41e-01
-    c = 8.80e-04
-    d = 2.81e-01
-    P0 = 6.17e+00
-    ####################################################
+    # solves concentration model using given parameters
+    ts_model,Cs_model = solve_concentration_ode(f=concentration_ode,t0=tmin,t1=tmax,dt=0.05,C0=C0,pars=pars)
 
-    pars = [M0,a,b,c,d,P0]
-
-    ts_model,cs_model = solve_concentration_ode(f=concentration_ode,t0=tmin,t1=tmax,dt=0.05,C0=cs_data[0],pars=pars)
-
+    # plots model
     f,ax = plt.subplots(1,1)
-    ax.plot(ts_data,cs_data,'kx',label='Measured Data')
-    ax.plot(ts_model,cs_model,'r-',label='Fitted Model\n a = 1.92e-03\n b = 1.41e-01\n c = 8.80e-04\n d = 2.81e-01\n M0 = 8.29e+03')
+    ax.plot(ts_data,Cs_data,'kx',label='Measured Data')
+    ax.plot(ts_model,Cs_model,'r-',label='Fitted Model\n a = {:1.2e}\n b = {:1.2e}\n c = {:1.2e}\n d = {:1.2e}\n M0 = {:1.2e}'.format(*pars[1:]))
     ax.legend()
-    ax.set_title('Best fit LP concentration model after parameter calibration')
+    ax.set_title('Fitted LP concentration model')
     ax.set_xlabel('Year of measurement [A.D.]')
     ax.set_ylabel('Concentration of CO2 [wt%]')
     plt.show()
+
+
+def main():
+    plot_concentration([8.29e+03,1.92e-03,1.41e-01,8.80e-04,2.81e-01,6.17e+00])
+    
+if __name__ == "__main__":
+    main()
