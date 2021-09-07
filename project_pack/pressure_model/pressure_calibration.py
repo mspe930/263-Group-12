@@ -1,3 +1,4 @@
+from urllib import parse
 import numpy as np
 from matplotlib import pyplot as plt
 from scipy.optimize import curve_fit
@@ -28,6 +29,8 @@ def pressure_model(t,M0,a,b,c,d,P0):
     '''
     # store input parameters as an array
     pars = np.array([M0,a,b,c,d,P0])
+    # read pressure data 
+    ts_data,Ps_data = fetch_pressure_data()
     # use pressure model to compute pressure at a range of times
     ts,Ps = solve_pressure_ode(f=pressure_ode,t0=ts_data[0],t1=t[-1],dt=0.2,P0=Ps_data[0],pars=pars)
     # interpolate solved pressures to the list of given time data
@@ -51,6 +54,9 @@ def compute_residuals(Ps):
             List of pressure residuals. 
     
     '''
+    # read pressure data 
+    ts_data,Ps_data = fetch_pressure_data()
+    
     # initialise list of residuals
     residuals = np.zeros(len(ts_data))
 
@@ -61,17 +67,44 @@ def compute_residuals(Ps):
     # return list of residuals
     return residuals
 
-def main():
-    # define global variables for measured data
-    global ts_data, Ps_data
-    # read pressure data from file
-    data = np.genfromtxt('cs_p.txt',dtype=float,delimiter=', ',skip_header=1).T
-    # store lists of data as global variables
-    ts_data = data[0,:]
-    Ps_data = data[1,:]
+def plot_pressure_residuals(pars):
+    ''' Creates a residual plot of a pressure model given a list of model parameters
 
+        Parameters
+        ----------
+        pars : array-like
+            List of model parameters in the form (M0, a, b, c, d, P0)
+        
+        Returns 
+        -------
+        None
+    '''
+    # read pressure data from file
+    ts_data,Ps_data = fetch_pressure_data()
+
+    # solve for the pressures using the best fit parameters
+    ts,Ps = solve_pressure_ode(f=pressure_ode,t0=ts_data[0],t1=ts_data[-1],dt=0.2,P0=Ps_data[0],pars=pars)
+    # interpolate pressure at the measured time data points only
+    f = interp1d(ts,Ps)
+    Ps = f(ts_data)
+    # compute the residuals of the model
+    residuals = compute_residuals(Ps)
+        
+    # plot the residuals 
+    f,ax = plt.subplots(1,1)
+    ax.plot(ts_data,residuals,'ro',markerSize=8,markerfacecolor='none',label='Fitted Model:\n a = {:1.3e}\n b = {:1.3e}\n c = {:1.3e}'.format(pars[1],pars[2],pars[3]))
+    ax.set_xlabel('Year of observation [A.D.]')
+    ax.set_ylabel('Pressure residuals [MPa]')
+    ax.set_title('Residuals plot of fitted LP pressure model')
+    ax.legend()
+    plt.show()
+
+def main():
     # INITIAL PARAMETER GUESS of the form (M0, a, b, c, d, P0)
     pars0 = [5.e+03, 2.5e-3,  3.e-01, 8.e-04, 5.e-01,  6.17e+00]
+
+    # reads data off file
+    ts_data,Ps_data = fetch_pressure_data()
 
     # set bounds for parameter estimation
     # P0 is fixed for now so has a very small bounding radius +/- 0.01 MPa
@@ -89,28 +122,7 @@ def main():
     print(" "*5, end="")
     print("c = {:1.2e}".format(p[3]))
 
-    # whether to plot the residuals of the fitted model
-    plotResiduals = False
-
-    if plotResiduals:
-        # solve for the pressures using the best fit parameters
-        ts,Ps = solve_pressure_ode(f=pressure_ode,t0=ts_data[0],t1=ts_data[-1],dt=0.2,P0=Ps_data[0],pars=p)
-        # interpolate pressure at the measured time data points only
-        f = interp1d(ts,Ps)
-        Ps = f(ts_data)
-        # compute the residuals of the model
-        residuals = compute_residuals(Ps)
-        
-        # plot the residuals 
-        f,ax = plt.subplots(1,1)
-        ax.plot(ts_data,residuals,'ro',markerSize=8,markerfacecolor='none',label='Fitted Model:\n a = 1.92-03\n b = 1.41e-01\n c = 8.80e-04')
-        ax.set_xlabel('Year of observation [A.D.]')
-        ax.set_ylabel('Pressure residuals [MPa]')
-        ax.set_title('Residuals plot of best fit LP pressure model')
-        ax.legend()
-        plt.show()
-
-
+    # return parameters needed for the concentration calibration
     return p[1],p[2],p[3],p[5]
     
 if __name__ == "__main__":
