@@ -4,6 +4,29 @@ from scipy.interpolate import interp1d
 from matplotlib import pyplot as plt
 from pressure_model import *
 
+def fetch_concentration_data():
+    ''' Reads the CO2 concentration data from the cs_cc.txt file.
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        ts_data : array-like
+            Vector of times.
+        Cs_data : array-like
+            Vector of concentrations.
+    '''
+    # reads concentration data from files 
+    data = np.genfromtxt('cs_cc.txt',dtype=float,delimiter=', ',skip_header=1).T
+    # seperates data into times and concentrations
+    ts_data = data[0,:]
+    Cs_data = data[1,:]
+    # reads lists of data 
+    return ts_data,Cs_data
+
+
 def c_dash(c,c0,P,P0):
     ''' Returns the piece-wise C' term in the CO2 concentration ODE.
 
@@ -147,12 +170,16 @@ def solve_concentration_ode(f,t0,t1,dt,C0,pars=[]):
     # solve for pressures 
     ts,Ps = solve_pressure_ode(f=pressure_ode,t0=t0,t1=t1,dt=dt,P0=pars[-1],pars=pars)
 
+    # loops through each step
     for i in range(npoints-1):
+        # computes f0 term of IEM
         f0 = f(ts[i],cs[i],C0,Ps[i],qs[i],*pars)
+        # computes f1 term of IEM
         f1 = f(ts[i+1],cs[i]+dt*f0,C0,Ps[i],qs[i+1],*pars)
+        # computes next step 
         cs[i+1] = cs[i] + 0.5*dt*(f0+f1)
-    
     return ts,cs
+    
     
 if __name__ == "__main__":
     cs_data = np.genfromtxt('cs_cc.txt',dtype=float,delimiter=', ',skip_header=1).T
@@ -164,11 +191,11 @@ if __name__ == "__main__":
 
     ####################################################
     ## ALL OF THESE CONSTANTS CHANGE OUR MODEL #########
-    M0 = 5.e3           # note this is mass of co2 not the mass of our entire reservoir
-    a = 8.e-5
-    b = 1.e-2
-    c = 7.e-3
-    d = 5.e-1
+    M0 = 8.29e+03           # note this is mass of co2 not the mass of our entire reservoir
+    a = 1.92e-03
+    b = 1.41e-01
+    c = 8.80e-04
+    d = 2.81e-01
     P0 = 6.17e+00
     ####################################################
 
@@ -177,10 +204,10 @@ if __name__ == "__main__":
     ts_model,cs_model = solve_concentration_ode(f=concentration_ode,t0=tmin,t1=tmax,dt=0.05,C0=cs_data[0],pars=pars)
 
     f,ax = plt.subplots(1,1)
-    ax.plot(ts_model,cs_model,'r-',label='Fitted Model')
     ax.plot(ts_data,cs_data,'kx',label='Measured Data')
+    ax.plot(ts_model,cs_model,'r-',label='Fitted Model\n a = 1.92e-03\n b = 1.41e-01\n c = 8.80e-04\n d = 2.81e-01\n M0 = 8.29e+03')
     ax.legend()
-    ax.set_title('Comparison of modelled CO2 concentration versus measured data over time in the Ohaaki geothermal reservoir')
+    ax.set_title('Best fit LP concentration model after parameter calibration')
     ax.set_xlabel('Year of measurement [A.D.]')
     ax.set_ylabel('Concentration of CO2 [wt%]')
     plt.show()
