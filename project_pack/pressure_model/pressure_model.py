@@ -3,6 +3,28 @@ from scipy import interpolate
 from scipy.interpolate import interp1d
 from matplotlib import pyplot as plt
 
+def fetch_pressure_data():
+    ''' Reads the pressure data on the cs_p.txt file.
+
+        Parameters
+        ----------
+        None
+
+        Returns 
+        -------
+        ts_data : array-like
+            Vector of times.
+        Ps_data : array-like
+            Vector of reservoir pressure readings.
+    '''
+    # read pressure data from file
+    data = np.genfromtxt('cs_p.txt',dtype=float,delimiter=', ',skip_header=1).T
+    # seperates data into times and pressures
+    ts_data = data[0,:]
+    Ps_data = data[1,:]
+    # returns vectors of data
+    return ts_data,Ps_data
+
 def pressure_ode(t, P, q, dqdt, M0, a, b, c, d, P0):
     ''' Returns time derivative of reservoir pressure, dP/dt, for given parameters.
         
@@ -183,20 +205,20 @@ def plotPressure(pars):
     '''
 
     # reads pressure measurements from file 
-    Ps_data = np.genfromtxt('cs_p.txt',dtype=float,delimiter=', ',skip_header=1).T
+    ts_data,Ps_data = fetch_pressure_data()
     # takes minimum time of measurement 
-    tmin = Ps_data[0,0]
+    tmin = ts_data[0]
     # takes maximum time of measurement
-    tmax = Ps_data[0,-1]
+    tmax = ts_data[-1]
     # takes initial measured pressure
-    P0 = Ps_data[1,0]
+    P0 = Ps_data[0]
 
     # solves our pressure model for the given parameters
     ts_model,Ps_model = solve_pressure_ode(f=pressure_ode,t0=tmin,t1=tmax,dt=0.2,P0=P0,pars=pars)
 
     # plots our pressure model
     f,ax = plt.subplots(1,1)
-    ax.plot(Ps_data[0,:],Ps_data[1,:],'kx',label='Measured Data')
+    ax.plot(ts_data,Ps_data,'kx',label='Measured Data')
     ax.plot(ts_model,Ps_model,'r-',label='Fitted Model:\n a = {:1.3e}\n b = {:1.3e}\n c = {:1.3e}'.format(pars[1],pars[2],pars[3]))
     ax.set_xlabel('Year of observation [A.D.]')
     ax.set_ylabel('Reservoir pressure [MPa]')
