@@ -56,7 +56,7 @@ def compute_residuals(Ps):
     '''
     # read pressure data 
     ts_data,Ps_data = fetch_pressure_data()
-    
+
     # initialise list of residuals
     residuals = np.zeros(len(ts_data))
 
@@ -99,10 +99,23 @@ def plot_pressure_residuals(pars):
     ax.legend()
     plt.show()
 
-def main():
-    # INITIAL PARAMETER GUESS of the form (M0, a, b, c, d, P0)
-    pars0 = [5.e+03, 2.5e-3,  3.e-01, 8.e-04, 5.e-01,  6.17e+00]
+def calibrate_pressure_model(pars0):
+    ''' Calibrates our pressure model using a steepest descent algorithm and a sum-of-squares misfit.
 
+        Parameters
+        ----------
+        pars0 : array-like
+            List of model parameters (initial guess).
+        
+        Returns
+        -------
+        pars : array-like
+            List of parameters of our calibrated model (give a best fit).
+        
+        Notes
+        -----
+        Both pars0 and pars are a vector of the form (M0, a, b, c, d, P0).
+    '''
     # reads data off file
     ts_data,Ps_data = fetch_pressure_data()
 
@@ -122,8 +135,19 @@ def main():
     print(" "*5, end="")
     print("c = {:1.2e}".format(p[3]))
 
-    # return parameters needed for the concentration calibration
-    return p[1],p[2],p[3],p[5]
+    # return parameters of calibrated model
+    return p
+
+
+def main():
+    # INITIAL PARAMETER GUESS of the form (M0, a, b, c, d, P0)
+    pars0 = [5.e+03, 2.5e-3,  3.e-01, 8.e-04, 5.e-01,  6.17e+00]
+    # calibrate model
+    pars = calibrate_pressure_model(pars0)
+    # plot best fit model
+    plot_pressure(pars)
+    # plot residuals of best fit model
+    plot_pressure_residuals(pars)
     
 if __name__ == "__main__":
     main()
