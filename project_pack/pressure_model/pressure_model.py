@@ -5,7 +5,7 @@ from matplotlib import pyplot as plt
 
 def pressure_ode(t, P, q, dqdt, M0, a, b, c, d, P0):
     ''' Returns time derivative of reservoir pressure, dP/dt, for given parameters.
-
+        
         Parameters
         ----------
         t : float
@@ -168,31 +168,48 @@ def solve_pressure_ode(f,t0,t1,dt,P0,pars=[]):
 
     # return time and pressure solution vectors
     return ts,Ps
-    
 
-if __name__ == "__main__":
+def plotPressure(pars):
+    ''' Plots the LP pressure model against measured data given a list of model parameters.
 
+        Parameters
+        ----------
+        pars : array-like
+            List of model parameters in the form (M0, a, b, c, d, P0).
+        
+        Returns
+        -------
+        None
+    '''
+
+    # reads pressure measurements from file 
     Ps_data = np.genfromtxt('cs_p.txt',dtype=float,delimiter=', ',skip_header=1).T
+    # takes minimum time of measurement 
     tmin = Ps_data[0,0]
+    # takes maximum time of measurement
     tmax = Ps_data[0,-1]
+    # takes initial measured pressure
     P0 = Ps_data[1,0]
-    
-    #####################################################################
-    M0 = 5.e3       # DOES NOT effect this model
-    a = 5.e-3       # effects model
-    b = 5.e-1       # effects model
-    c = 5.e-4       # effects model
-    d = 5.e-1       # DOES NOT effect this model
-    Pamb = P0       # hard-coded initial pressure of reservoir
-    #####################################################################
 
-    ts_model,Ps_model = solve_pressure_ode(f=pressure_ode,t0=tmin,t1=tmax,dt=0.05,P0=P0,pars=[M0,a,b,c,d,Pamb])
+    # solves our pressure model for the given parameters
+    ts_model,Ps_model = solve_pressure_ode(f=pressure_ode,t0=tmin,t1=tmax,dt=0.2,P0=P0,pars=pars)
 
+    # plots our pressure model
     f,ax = plt.subplots(1,1)
     ax.plot(Ps_data[0,:],Ps_data[1,:],'kx',label='Measured Data')
-    ax.plot(ts_model,Ps_model,'r-',label='Fitted Model')
+    ax.plot(ts_model,Ps_model,'r-',label='Fitted Model:\n a = {:1.3e}\n b = {:1.3e}\n c = {:1.3e}'.format(pars[1],pars[2],pars[3]))
     ax.set_xlabel('Year of observation [A.D.]')
     ax.set_ylabel('Reservoir pressure [MPa]')
     ax.legend()
-    ax.set_title('Comparison of measured pressure and modelled pressure over time in the Ohaaki geothermal reservoir')
+    ax.set_title('Fitted LP pressure model')
     plt.show()
+
+def main():
+    # initial guess of parameters
+    plotPressure([5.e+03, 2.5e-3,  3.e-01, 8.e-04, 5.e-01,  6.17e+00])
+
+
+if __name__ == "__main__":
+    main()
+
+    
