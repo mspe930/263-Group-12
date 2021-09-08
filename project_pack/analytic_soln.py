@@ -5,19 +5,24 @@ from numpy.core.fromnumeric import shape
 from numpy.lib.npyio import genfromtxt, load
 
 
-def plot_benchmark(plot):
+def plot_benchmark(length):
     '''--------------
     This function creates plots of the analytical solutions for the provided data
     
     INPUT:
-    plot: a boolean variable, which will determine whether the plot will be shown or saved
+    length: an integer variable, which will determine the time step to analyse over
+    
+    OUTPUT:
+    p_ana: an array of integer variables 
+            for the analytical solution for pressure over the time period from the data
+    c_ana: an array of integer variables 
+            for the analytical solution for concentration over the time period from the data
     --------------'''
     
     press_data = np.genfromtxt("cs_p.txt", delimiter=',', skip_header=1)
-    length = shape(press_data)
-
+    
     t0 = press_data[0, 0]
-    t = np.linspace(t0, press_data[-1, 0], num=length[0])
+    t = np.linspace(t0, press_data[-1, 0], num=length)
 
     p_ana = np.zeros(length[0])
     a = 2*(10 ** (-1))
@@ -28,7 +33,7 @@ def plot_benchmark(plot):
         time = (t[i] - t0)  # *365*24*3600
         p_ana[i] = ((-a/b)*(1-(np.exp(-b*time))) + P0)
 
-    f, ax = plt.subplots(nrows=1, ncols=1)
+    '''f, ax = plt.subplots(nrows=1, ncols=1)
     ax.plot(press_data[:, 0], press_data[:, 1],
             'r.', label='given pressure data')
     ax.plot(t, p_ana, 'b', label="analytical")
@@ -39,13 +44,13 @@ def plot_benchmark(plot):
     if plot:
         plt.show()
     else:
-        plt.savefig('263_press_benchmark.png', dpi=300)
+        plt.savefig('263_press_benchmark.png', dpi=300)'''
 
     conc_data = np.genfromtxt("cs_cc.txt", delimiter=',', skip_header=1)
     length = shape(conc_data)
 
     t0 = conc_data[0, 0]
-    t = np.linspace(t0, conc_data[-1, 0], num=length[0])
+    t = np.linspace(t0, conc_data[-1, 0], num=length)
 
     c_ana = np.zeros(length[0])
 
@@ -59,7 +64,7 @@ def plot_benchmark(plot):
         time = (t[i] - t0)  # * 365 * 24  # *3600
         c_ana[i] = ((k + d*C0) / (k + d)) + (L / np.exp((k+d)*time))
 
-    f, ax = plt.subplots(nrows=1, ncols=1)
+    '''f, ax = plt.subplots(nrows=1, ncols=1)
     ax.plot(conc_data[:, 0], conc_data[:, 1],
             'r.', label='given concentration data')
     ax.plot(t, c_ana, 'b', label="analytical")
@@ -70,7 +75,9 @@ def plot_benchmark(plot):
     if plot:
         plt.show()
     else:
-        plt.savefig('263_concentration_benchmark.png', dpi=300)
+        plt.savefig('263_concentration_benchmark.png', dpi=300)'''
+    
+    return p_ana, c_ana
 
 
 if __name__ == "__main__":
