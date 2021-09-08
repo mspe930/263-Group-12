@@ -24,6 +24,11 @@ def pressure_model(t,M0,a,b,c,d,P0):
             Diffusion strength lumped parameter. Unused in pressure model but required for consistency with our concentration model.
         P0 : float
             Parameter - initial reservoir pressure.
+        
+        Returns
+        -------
+        Ps : array-like
+            List of pressures for given parameters and paired times.
     
     '''
     # store input parameters as an array
