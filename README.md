@@ -20,6 +20,10 @@ The pressure in the reservoir is also modelled and analysed in order to understa
 
 <!-- INSTALLATION -->
 ### Installation
+1. Get permission to access project
+2. Clone the repo in command prompt to create local repository
+   ```sh
+   git clone https://github.com/your_username_/263-Group-12.git
 
 <!-- USAGE -->
 ### Usage
