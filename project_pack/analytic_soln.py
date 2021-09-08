@@ -5,7 +5,14 @@ from numpy.core.fromnumeric import shape
 from numpy.lib.npyio import genfromtxt, load
 
 
-def plot_benchmark():
+def plot_benchmark(plot):
+    '''--------------
+    This function creates plots of the analytical solutions for the provided data
+    
+    INPUT:
+    plot: a boolean variable, which will determine whether the plot will be shown or saved
+    --------------'''
+    
     press_data = np.genfromtxt("cs_p.txt", delimiter=',', skip_header=1)
     length = shape(press_data)
 
@@ -28,8 +35,7 @@ def plot_benchmark():
     ax.set_ylabel("Pressure [MPa]")
     ax.set_xlabel("Year")
     ax.legend()
-
-    plot = True
+    
     if plot:
         plt.show()
     else:
