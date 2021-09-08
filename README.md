@@ -14,7 +14,7 @@
 
 <!-- DISCRIPTION -->
 ### Description 
-The purpose of our project is to study pressure and CO2 changes in the Ohaaki Geothermal Reservoir. We have developed a model of the concentration of CO2 and changes in the reservoir’s concentration of CO2 using past data of the injections and production. -
+The purpose of our project is to study pressure and CO2 changes in the Ohaaki Geothermal Reservoir. We have developed a model of the concentration of CO2 and changes in the reservoir’s concentration of CO2 using past data of the injections and production.
 
 The pressure in the reservoir is also modelled and analysed in order to understand the effects of CO2 on the pressure and seepage of the reservoir. We have used this to look at the effects of expanding CO2 injection and to therefore make a recommendation for future CO2 injection so that they are safe and sustainable. 
 
