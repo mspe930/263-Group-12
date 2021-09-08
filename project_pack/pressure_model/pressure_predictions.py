@@ -3,7 +3,7 @@ from matplotlib import pyplot as plt
 from pressure_calibration import *
 from pressure_model import *
 
-def solve_pressure_custom_inj(qs,f,t0,t1,dt,P0,pars=[]):
+def solve_pressure_custom(qs,f,t0,t1,dt,P0,pars=[]):
     ''' Solves pressure ODE numerically given a custom list of mass flow rates (not read from file).
 
         Parameters
@@ -66,6 +66,55 @@ def solve_pressure_custom_inj(qs,f,t0,t1,dt,P0,pars=[]):
     return ts,Ps
 
 
+def no_changes_injection(ax,pars,tend,Pend):
+    ''' Solves our pressure model to predict the outcome when no changes are made to the injection rate, and plots this solution
+        on a given axis.
+
+        Parameters
+        ----------
+        ax : matplot.lib object
+            Axis to plot the predicted pressure evolution.
+        pars : array-like
+            List of lumped parameters passed to the pressure model.
+        tend : float
+            Present time.
+        Pend : float
+            Pressure of reservoir at last measurement (at present time).
+        
+        Returns
+        -------
+        None
+    '''
+    # reads past injection data from file 
+    inj_data = np.genfromtxt('cs_c.txt',dtype=float,delimiter=', ',skip_header=1).T
+    qs_inj = inj_data[1,:]
+
+    # reads past production data from file 
+    prod_data = np.genfromtxt('cs_q.txt',dtype=float,delimiter=', ',skip_header=1).T
+    qs_prod = prod_data[1,:]
+
+    # finds start time of prediction (i.e. the real present)
+    tmin = tend
+    # finds end time of prediction, 20 yrs into the future
+    tmax = tmin + 20.
+
+    # creates list of times 
+    N = 50
+    ts = np.linspace(tmin,tmax,N,endpoint=True)
+
+    # creates list of future production rates - assuming constant from now
+    qs_prod = np.array([qs_prod[-1]]*N)
+    # creates list of future injection rates - assuming no change in injection rates from now 
+    qs_inj = np.array([qs_inj[-1]]*N)
+    # computes list of net mass flow rates 
+    qs = qs_prod - qs_inj
+
+    # solves pressure model using custom list of injection rates 
+    ts,Ps = solve_pressure_custom(qs=qs,f=pressure_ode,t0=tmin,t1=tmax,dt=0.2,P0=Pend,pars=pars)
+    # plots pressure evolution on axis 
+    ax.plot(ts,Ps,'b-',label='No change')
+
+
 def quadruple_injection(ax,pars,tend,Pend):
     ''' Solves our pressure model to predict the outcome when the injection rates are quadrupled, and plots this solution
         on a given axis.
@@ -87,16 +136,13 @@ def quadruple_injection(ax,pars,tend,Pend):
     '''
     # reads past injection data from file 
     inj_data = np.genfromtxt('cs_c.txt',dtype=float,delimiter=', ',skip_header=1).T
-    ts_inj = inj_data[0,:]
     qs_inj = inj_data[1,:]
 
     # reads past production data from file 
     prod_data = np.genfromtxt('cs_q.txt',dtype=float,delimiter=', ',skip_header=1).T
-    ts_prod = prod_data[0,:]
     qs_prod = prod_data[1,:]
 
     # finds start time of prediction (i.e. the real present)
-    #tmin = np.max(np.concatenate((ts_inj,ts_prod)))
     tmin = tend
     # finds end time of prediction, 20 yrs into the future
     tmax = tmin + 20.
@@ -107,18 +153,64 @@ def quadruple_injection(ax,pars,tend,Pend):
     # creates list of future production rates - assuming constant from now
     qs_prod = np.array([qs_prod[-1]]*N)
     # creates list of future injection rates - assuming quadruple of current rate 
-    qs_inj = np.array([qs_inj[-1]]*N)
+    qs_inj = np.array([4*qs_inj[-1]]*N)
     # computes list of net mass flow rates 
     qs = qs_prod - qs_inj
 
     # solves pressure model using custom list of injection rates 
-    ts,Ps = solve_pressure_custom_inj(qs=qs,f=pressure_ode,t0=tmin,t1=tmax,dt=0.2,P0=Pend,pars=pars)
+    ts,Ps = solve_pressure_custom(qs=qs,f=pressure_ode,t0=tmin,t1=tmax,dt=0.2,P0=Pend,pars=pars)
 
     # plots pressure evolution on axis 
-    ax.plot(ts,Ps,'b-',label='Quadruple injections'.format(qs_inj[0]))
+    ax.plot(ts,Ps,'m-',label='Quadruple injections')
 
 
+def double_injection(ax,pars,tend,Pend):
+    ''' Solves our pressure model to predict the outcome when the injection rates are doubled, and plots this solution
+        on a given axis.
 
+        Parameters
+        ----------
+        ax : matplot.lib object
+            Axis to plot the predicted pressure evolution.
+        pars : array-like
+            List of lumped parameters passed to the pressure model.
+        tend : float
+            Present time.
+        Pend : float
+            Pressure of reservoir at last measurement (at present time).
+        
+        Returns
+        -------
+        None
+    '''
+    # reads past injection data from file 
+    inj_data = np.genfromtxt('cs_c.txt',dtype=float,delimiter=', ',skip_header=1).T
+    qs_inj = inj_data[1,:]
+
+    # reads past production data from file 
+    prod_data = np.genfromtxt('cs_q.txt',dtype=float,delimiter=', ',skip_header=1).T
+    qs_prod = prod_data[1,:]
+
+    # finds start time of prediction (i.e. the real present)
+    tmin = tend
+    # finds end time of prediction, 20 yrs into the future
+    tmax = tmin + 20.
+    # creates list of times 
+    N = 50
+    ts = np.linspace(tmin,tmax,N,endpoint=True)
+
+    # creates list of future production rates - assuming constant from now
+    qs_prod = np.array([qs_prod[-1]]*N)
+    # creates list of future injection rates - assuming quadruple of current rate 
+    qs_inj = np.array([2*qs_inj[-1]]*N)
+    # computes list of net mass flow rates 
+    qs = qs_prod - qs_inj
+
+    # solves pressure model using custom list of injection rates 
+    ts,Ps = solve_pressure_custom(qs=qs,f=pressure_ode,t0=tmin,t1=tmax,dt=0.2,P0=Pend,pars=pars)
+
+    # plots pressure evolution on axis 
+    ax.plot(ts,Ps,'g-',label='Double injections')
 
 
 def plot_predictions(pars):
@@ -147,6 +239,10 @@ def plot_predictions(pars):
 
     # plots the predicted pressure evolution when quadrupling injection rate 
     quadruple_injection(ax,pars,ts[-1],Ps[-1])
+    # plot the predicted pressure evolution when doubling injection rate
+    double_injection(ax,pars,ts[-1],Ps[-1])
+    # plots the predicted pressure evolution with no change in current injection rate
+    no_changes_injection(ax,pars,ts[-1],Ps[-1])
 
     ax.legend() # add legend
     plt.show()  # show plot
@@ -155,7 +251,6 @@ def plot_predictions(pars):
 def main():
     p = calibrate_pressure_model([5.e+03, 2.5e-3,  3.e-01, 8.e-04, 5.e-01,  6.17e+00])
     plot_predictions(p)
-
 
 if __name__ == "__main__":
     main()  
