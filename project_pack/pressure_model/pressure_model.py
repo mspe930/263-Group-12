@@ -49,6 +49,9 @@ def pressure_ode(t, P, q, dqdt, M0, a, b, c, d, P0):
             Slow drainage strength lumped parameter.
         d : float
             Diffusion strength lumped parameter.
+        P0 : float
+            Initial pressure of reservoir. Treated a fixed constant until the uncertainty analysis 
+            (in which it is treated as another model parameter).
     
         Returns
         -------
@@ -191,7 +194,7 @@ def solve_pressure_ode(f,t0,t1,dt,P0,pars=[]):
     # return time and pressure solution vectors
     return ts,Ps
 
-def plotPressure(pars):
+def plot_pressure(pars):
     ''' Plots the LP pressure model against measured data given a list of model parameters.
 
         Parameters
@@ -228,7 +231,7 @@ def plotPressure(pars):
 
 def main():
     # initial guess of parameters
-    plotPressure([5.e+03, 2.5e-3,  3.e-01, 8.e-04, 5.e-01,  6.17e+00])
+    plot_pressure([5.e+03, 2.5e-3,  3.e-01, 8.e-04, 5.e-01,  6.17e+00])
 
 
 if __name__ == "__main__":
