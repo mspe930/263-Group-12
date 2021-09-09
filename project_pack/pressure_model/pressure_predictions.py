@@ -100,7 +100,7 @@ def half_injection(ax,pars,tend,Pend):
 
     # creates list of future production rates - assuming constant from now
     qs_prod = np.array([qs_prod[-1]]*N)
-    # creates list of future injection rates - assuming no change in injection rates from now 
+    # creates list of future injection rates - assuming injection rate is halved
     qs_inj = np.array([0.5*qs_inj[-1]]*N)
     # computes list of net mass flow rates 
     qs = qs_prod - qs_inj
