@@ -63,7 +63,7 @@ def solve_pressure_custom(qs,f,t0,t1,dt,P0,pars=[]):
     return ts,Ps
 
 
-def half_injection(ax,pars,tend,Pend,lw=0.4,alpha=0.2,label='Half injections'):
+def half_injection(ax,pars,tend,Pend,lw=1.,alpha=1.,label='Half injections'):
     ''' Solves our pressure model to predict the outcome when the injection rate is halved, and plots this solution
         on a given axis.
         Parameters
@@ -165,7 +165,7 @@ def no_changes_injection(ax,pars,tend,Pend,lw=0.4,alpha=0.2,label='No change'):
         ax.plot(ts,Ps,'b-',lw=lw,alpha=alpha,label=label)
 
 
-def quadruple_injection(ax,pars,tend,Pend,lw=0.4,alpha=0.2,label='Quadruple injections'):
+def quadruple_injection(ax,pars,tend,Pend,lw=1.,alpha=1.,label='Quadruple injections'):
     ''' Solves our pressure model to predict the outcome when the injection rates are quadrupled, and plots this solution
         on a given axis.
         Parameters
@@ -216,7 +216,7 @@ def quadruple_injection(ax,pars,tend,Pend,lw=0.4,alpha=0.2,label='Quadruple inje
         ax.plot(ts,Ps,'m-',label=label)
 
 
-def double_injection(ax,pars,tend,Pend,lw=0.4,alpha=0.2,label='Double injections'):
+def double_injection(ax,pars,tend,Pend,lw=1.,alpha=1.,label='Double injections'):
     ''' Solves our pressure model to predict the outcome when the injection rates are doubled, and plots this solution
         on a given axis.
         Parameters
@@ -298,6 +298,7 @@ def plot_predictions(pars):
     # plots the predicted pressure evolutions when halving injection rate
     half_injection(ax,pars,ts[-1],Ps[-1],lw=1.,alpha=1.)
 
+    ax.set_title('Ohaaki LP pressure model: scenario forecasts')    # add title
     ax.legend() # add legend
     plt.show()  # show plot
 
