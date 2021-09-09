@@ -6,13 +6,15 @@ from pressure_calibration import *
 from pressure_model import *
 from pressure_predictions import solve_pressure_custom
 
-def solve_concentration_custom(qs,f,t0,t1,dt,C0,pars=[]):
+def solve_concentration_custom(qs,qco2,f,t0,t1,dt,C0,pars=[]):
     ''' Solves CO2 concentration ODE numerically given a custom list of mass flow rates (not read from file).
-
+        
         Parameters
         ----------
         qs : array-like
-            Vector of mass flow rates. 
+            Vector of total mass flow rates. 
+        qco2: array-like
+            Vector of CO2 mass flow rates.
         f : callable
             Function that returns time-derivative of pressure given parameter inputs.
         t0 : float
@@ -25,7 +27,7 @@ def solve_concentration_custom(qs,f,t0,t1,dt,C0,pars=[]):
             Initial concentration of solution.
         pars : array-like
             List of lumped parameters passed to function f.
-
+        
         Returns
         -------
         ts : array-like
@@ -41,6 +43,7 @@ def solve_concentration_custom(qs,f,t0,t1,dt,C0,pars=[]):
     '''
     # compute number of steps taken for IEM
     npoints = int((t1-t0)/dt + 1)
+
     # initialise vector of times and concentrations of solution
     ts = np.linspace(t0,t1,npoints,endpoint=True)
     Cs = np.zeros(npoints)
@@ -48,6 +51,7 @@ def solve_concentration_custom(qs,f,t0,t1,dt,C0,pars=[]):
 
     # create list of mass flow rates (assumed const.)
     qs = np.array([qs[0]]*len(ts))
+    qco2 = np.array([qco2[0]]*len(ts))
 
     # solve for pressures
     ts,Ps = solve_pressure_custom(qs,pressure_ode,t0,t1,dt,pars[-1],pars)
@@ -55,9 +59,9 @@ def solve_concentration_custom(qs,f,t0,t1,dt,C0,pars=[]):
     # loop through each step in the IEM
     for i in range(npoints-1):
         # compute f0 term 
-        f0 = f(ts[i],Cs[i],C0,Ps[i],qs[i],*pars)
+        f0 = f(ts[i],Cs[i],C0,Ps[i],qco2[i],*pars)
         # compute f1 term
-        f1 = f(ts[i+1],Cs[i]+dt*f0,C0,Ps[i],qs[i+1],*pars)
+        f1 = f(ts[i+1],Cs[i]+dt*f0,C0,Ps[i],qco2[i+1],*pars)
         # find next step of concentration
         Cs[i+1] = Cs[i] + 0.5*dt*(f0+f1)
 
@@ -108,7 +112,7 @@ def no_changes_injection(ax,pars,tend,Cend):
     qs = qs_prod - qs_inj
 
     # solves concentration model using custom list of injection rates 
-    ts,Cs = solve_concentration_custom(qs=qs,f=concentration_ode,t0=tmin,t1=tmax,dt=0.2,C0=Cend,pars=pars)
+    ts,Cs = solve_concentration_custom(qs=qs,qco2=qs_inj,f=concentration_ode,t0=tmin,t1=tmax,dt=0.2,C0=Cend,pars=pars)
 
     # plots pressure evolution on axis 
     ax.plot(ts,Cs,'b-',label='No change')
@@ -117,7 +121,7 @@ def no_changes_injection(ax,pars,tend,Cend):
 def quadruple_injection(ax,pars,tend,Cend):
     ''' Solves our CO2 concentration model to predict the outcome when the injection rates are quadrupled, and plots this solution
         on a given axis.
-
+        
         Parameters
         ----------
         ax : matplot.lib object
@@ -157,7 +161,7 @@ def quadruple_injection(ax,pars,tend,Cend):
     qs = qs_prod - qs_inj
 
     # solves concentration model using custom list of injection rates 
-    ts,Cs = solve_concentration_custom(qs=qs,f=concentration_ode,t0=tmin,t1=tmax,dt=0.2,C0=Cend,pars=pars)
+    ts,Cs = solve_concentration_custom(qs=qs,qco2=qs_inj,f=concentration_ode,t0=tmin,t1=tmax,dt=0.2,C0=Cend,pars=pars)
 
     # plots pressure evolution on axis 
     ax.plot(ts,Cs,'m-',label='Quadruple injections')
@@ -166,7 +170,6 @@ def quadruple_injection(ax,pars,tend,Cend):
 def double_injection(ax,pars,tend,Cend):
     ''' Solves our CO2 concentration model to predict the outcome when the injection rates are doubled, and plots this solution
         on a given axis.
-
         Parameters
         ----------
         ax : matplot.lib object
@@ -206,7 +209,7 @@ def double_injection(ax,pars,tend,Cend):
     qs = qs_prod - qs_inj
 
     # solves concentration model using custom list of injection rates 
-    ts,Cs = solve_concentration_custom(qs=qs,f=concentration_ode,t0=tmin,t1=tmax,dt=0.2,C0=Cend,pars=pars)
+    ts,Cs = solve_concentration_custom(qs=qs,qco2=qs_inj,f=concentration_ode,t0=tmin,t1=tmax,dt=0.2,C0=Cend,pars=pars)
 
     # plots pressure evolution on axis 
     ax.plot(ts,Cs,'g-',label='Double injections')
@@ -215,7 +218,6 @@ def double_injection(ax,pars,tend,Cend):
 def half_injections(ax,pars,tend,Cend):
     ''' Solves our CO2 concentration model to predict the outcome when the injection rates are halved, and plots this solution
         on a given axis.
-
         Parameters
         ----------
         ax : matplot.lib object
@@ -255,7 +257,7 @@ def half_injections(ax,pars,tend,Cend):
     qs = qs_prod - qs_inj
 
     # solves concentration model using custom list of injection rates 
-    ts,Cs = solve_concentration_custom(qs=qs,f=concentration_ode,t0=tmin,t1=tmax,dt=0.2,C0=Cend,pars=pars)
+    ts,Cs = solve_concentration_custom(qs=qs,qco2=qs_inj,f=concentration_ode,t0=tmin,t1=tmax,dt=0.2,C0=Cend,pars=pars)
 
     # plots pressure evolution on axis 
     ax.plot(ts,Cs,'y-',label='Half injections')
@@ -264,12 +266,10 @@ def half_injections(ax,pars,tend,Cend):
 def plot_predictions(pars):
     ''' Plots the predicted CO2 concentration evolutions of all possible scenarios alongside the fitted model and measured data, given 
         a list of model parameters.
-
         Parameters
         ----------
         pars : array-like
             List of pressure model parameters.
-
         Returns
         -------
         None
@@ -295,12 +295,12 @@ def plot_predictions(pars):
     half_injections(ax,pars,ts[-1],Cs[-1])
 
     ax.set_ylabel('CO2 concentration [wt%]')   # set y axis label
-    ax.set_xlabel('Year [A.D.]')                # set x axis label
+    ax.set_xlabel('Year [C.E.]')               # set x axis label
     ax.set_title('CO2 concentration LP model: scenario forecasts')   # set title 
     ax.legend() # add legend
     plt.show()  # show plot
 
-
+    
 def main():
     p = calibrate_concentration_model([5.e+03, 2.5e-3,  3.e-01, 8.e-04, 5.e-01,  6.17e+00])
     plot_predictions(p)
