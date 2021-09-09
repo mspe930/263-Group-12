@@ -21,7 +21,7 @@ def main():
 
     # calibrate model to fit best fit parameters
     # with slow drainage initially zero i.e. c = 0
-    pars,_ = concentration_calibration.calibrate_concentration_model(pars0)
+    pars = concentration_calibration.calibrate_concentration_model(pars0)
     # slow drainage c = 0
     pars[3] = 0.
     pressure_model.plot_pressure(pars)  # pressure plot
@@ -30,7 +30,7 @@ def main():
     concentration_calibration.plot_concentration_residuals(pars) # concentration residual plot
 
     # recallibrate model with slow drainage
-    pars,_ = concentration_calibration.calibrate_concentration_model(pars0)
+    pars = concentration_calibration.calibrate_concentration_model(pars0)
     # plot best fit pressure model
     pressure_model.plot_pressure(pars)
     pressure_calibration.plot_pressure_residuals(pars)
