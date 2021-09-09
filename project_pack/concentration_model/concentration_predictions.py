@@ -69,10 +69,9 @@ def solve_concentration_custom(qs,qco2,f,t0,t1,dt,C0,pars=[]):
     return ts,Cs
 
 
-def no_changes_injection(ax,pars,tend,Cend):
+def no_changes_injection(ax,pars,tend,Cend,lw=1.,alpha=1.,label='No changes'):
     ''' Solves our CO2 concentration model to predict the outcome where there is no change to the injection rates, and plots this 
         solution on a given axis.
-
         Parameters
         ----------
         ax : matplot.lib object
@@ -115,10 +114,14 @@ def no_changes_injection(ax,pars,tend,Cend):
     ts,Cs = solve_concentration_custom(qs=qs,qco2=qs_inj,f=concentration_ode,t0=tmin,t1=tmax,dt=0.2,C0=Cend,pars=pars)
 
     # plots pressure evolution on axis 
-    ax.plot(ts,Cs,'b-',label='No change')
+    if label == '_nolabel_':
+        ax.plot(ts,Cs,'b-',lw=lw,alpha=alpha)
+    else:
+        ax.plot(ts,Cs,'b-',lw=lw,alpha=alpha,label=label)
+    
 
 
-def quadruple_injection(ax,pars,tend,Cend):
+def quadruple_injection(ax,pars,tend,Cend,lw=1.,alpha=1.,label='Quadruple injections'):
     ''' Solves our CO2 concentration model to predict the outcome when the injection rates are quadrupled, and plots this solution
         on a given axis.
         
@@ -164,10 +167,13 @@ def quadruple_injection(ax,pars,tend,Cend):
     ts,Cs = solve_concentration_custom(qs=qs,qco2=qs_inj,f=concentration_ode,t0=tmin,t1=tmax,dt=0.2,C0=Cend,pars=pars)
 
     # plots pressure evolution on axis 
-    ax.plot(ts,Cs,'m-',label='Quadruple injections')
+    if label == '_nolabel_':
+        ax.plot(ts,Cs,'m-',lw=lw,alpha=alpha)
+    else:
+        ax.plot(ts,Cs,'m-',lw=lw,alpha=alpha,label=label)
 
 
-def double_injection(ax,pars,tend,Cend):
+def double_injection(ax,pars,tend,Cend,lw=1.,alpha=1.,label='Double injections'):
     ''' Solves our CO2 concentration model to predict the outcome when the injection rates are doubled, and plots this solution
         on a given axis.
         Parameters
@@ -212,10 +218,13 @@ def double_injection(ax,pars,tend,Cend):
     ts,Cs = solve_concentration_custom(qs=qs,qco2=qs_inj,f=concentration_ode,t0=tmin,t1=tmax,dt=0.2,C0=Cend,pars=pars)
 
     # plots pressure evolution on axis 
-    ax.plot(ts,Cs,'g-',label='Double injections')
+    if label == '_nolabel_':
+        ax.plot(ts,Cs,'g-',lw=lw,alpha=alpha)
+    else:
+        ax.plot(ts,Cs,'g-',lw=lw,alpha=alpha,label=label)
 
 
-def half_injections(ax,pars,tend,Cend):
+def half_injections(ax,pars,tend,Cend,lw=1.,alpha=1.,label='Half injections'):
     ''' Solves our CO2 concentration model to predict the outcome when the injection rates are halved, and plots this solution
         on a given axis.
         Parameters
@@ -260,7 +269,10 @@ def half_injections(ax,pars,tend,Cend):
     ts,Cs = solve_concentration_custom(qs=qs,qco2=qs_inj,f=concentration_ode,t0=tmin,t1=tmax,dt=0.2,C0=Cend,pars=pars)
 
     # plots pressure evolution on axis 
-    ax.plot(ts,Cs,'y-',label='Half injections')
+    if label == '_nolabel_':
+        ax.plot(ts,Cs,'y-',lw=lw,alpha=alpha)
+    else:
+        ax.plot(ts,Cs,'y-',lw=lw,alpha=alpha,label=label)
 
 
 def plot_predictions(pars):
