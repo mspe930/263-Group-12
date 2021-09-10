@@ -6,11 +6,9 @@ from pressure_model import *
 
 def fetch_concentration_data():
     ''' Reads the CO2 concentration data from the cs_cc.txt file.
-
         Parameters
         ----------
         None
-
         Returns
         -------
         ts_data : array-like
@@ -29,7 +27,6 @@ def fetch_concentration_data():
 
 def c_dash(c,c0,P,P0):
     ''' Returns the piece-wise C' term in the CO2 concentration ODE.
-
         Parameters
         ----------
         c : float
@@ -57,9 +54,8 @@ def c_dash(c,c0,P,P0):
     return c_dash
 
 
-def concentration_ode(t, C, C0, P, qco2, M0, a, b, c, d, P0):
+def concentration_ode(t, C, C0, P, qco2, M0, a, b, c, d, P0, dash_ignore=False):
     ''' Returns time derivative of CO2 concentration in the reservoir, for given parameters.
-
         Parameters
         ----------
         t : float
@@ -84,16 +80,23 @@ def concentration_ode(t, C, C0, P, qco2, M0, a, b, c, d, P0):
             Diffusion strength lumped parameter.
         P0 : float
             Ambient pressure of reservoir.
+        dash_ignore : boolean
+            True means to assume that the term C' = C(t) always in the ODE. False means that C' is modelled 
+            as a piecewise function. 
         
         Returns
         -------
         dCdt : float
             Time derivative of CO2 concentation.
     '''
-
-    Cdash = c_dash(C,C0,P,P0)                # compute C' term in ODE
+    # compute C' in ODE
+    if dash_ignore:
+        Cdash = C       # assuming C' = C(t)
+    else:
+        Cdash = c_dash(C,C0,P,P0)   # assuming C' is piecewise                
+    
     termOne = (1-C)*qco2/M0                  # compute first term of ODE
-    termTwo = -1*b*(P-P0)*(Cdash-C)/(a*M0)  # compute second term of ODE
+    termTwo = -1*b*(P-P0)*(Cdash-C)/(a*M0)   # compute second term of ODE
     termThree = -1*d*(C-C0)                  # compute third term of ODE
 
     # sum all terms to find time derivative of CO2 concentration
@@ -103,12 +106,10 @@ def concentration_ode(t, C, C0, P, qco2, M0, a, b, c, d, P0):
 
 def interpolate_injection(ts):
     ''' Reads CO2 mass injection rates and interpolates this to a given vector of times.
-
         Parameters
         ---------
         ts : array-like
             Vector of times to interpolate at.
-
         Returns
         -------
         qs : array-like
@@ -128,9 +129,8 @@ def interpolate_injection(ts):
     return qs
 
 
-def solve_concentration_ode(f,t0,t1,dt,C0,pars=[]):
+def solve_concentration_ode(f,t0,t1,dt,C0,pars=[],dash_ignore=False):
     ''' Solves CO2 concentration ODE numerically using the Improved Euler Method.
-
         Parameters
         ----------
         f : callable
@@ -147,14 +147,16 @@ def solve_concentration_ode(f,t0,t1,dt,C0,pars=[]):
             Ambient pressure of reservoir.
         pars : array-like
             List of parameters passed to f.
-    
+        dash_ignore : boolean
+            True means to assume that the term C' = C(t) always in the ODE. False means that C' is modelled 
+            as a piecewise function.
+
         Returns
         -------
         ts : array-like
             Independent variable (time) solution vector.
         cs : array-like
             Dependent variable (concentration) solution vector.
-
         Notes
         -----
         NEED TO EXPLAIN ORDER OF INPUTS TO f
@@ -175,22 +177,24 @@ def solve_concentration_ode(f,t0,t1,dt,C0,pars=[]):
     # loops through each step
     for i in range(npoints-1):
         # computes f0 term of IEM
-        f0 = f(ts[i],cs[i],C0,Ps[i],qs[i],*pars)
+        f0 = f(ts[i],cs[i],C0,Ps[i],qs[i],*pars,dash_ignore)
         # computes f1 term of IEM
-        f1 = f(ts[i+1],cs[i]+dt*f0,C0,Ps[i],qs[i+1],*pars)
+        f1 = f(ts[i+1],cs[i]+dt*f0,C0,Ps[i],qs[i+1],*pars,dash_ignore)
         # computes next step 
         cs[i+1] = cs[i] + 0.5*dt*(f0+f1)
     return ts,cs
 
     
-def plot_concentration(pars):
+def plot_concentration(pars,dash_ignore=False):
     ''' Plots the LP CO2 concentration model given a list of model parameters.
-
         Parameters
         ----------
         pars : array-like
             List of model parameters in the form (M0, a, b, c, d, P0).
-
+        dash_ignore : boolean
+            True means to assume that the term C' = C(t) always in the ODE. False means that C' is modelled 
+            as a piecewise function.
+            
         Returns
         -------
         None
@@ -204,7 +208,7 @@ def plot_concentration(pars):
     C0 = Cs_data[0]
 
     # solves concentration model using given parameters
-    ts_model,Cs_model = solve_concentration_ode(f=concentration_ode,t0=tmin,t1=tmax,dt=0.05,C0=C0,pars=pars)
+    ts_model,Cs_model = solve_concentration_ode(f=concentration_ode,t0=tmin,t1=tmax,dt=0.05,C0=C0,pars=pars,dash_ignore=dash_ignore)
 
     # plots model
     f,ax = plt.subplots(1,1)
@@ -218,7 +222,8 @@ def plot_concentration(pars):
 
 
 def main():
-    plot_concentration([8.29e+03,1.92e-03,1.41e-01,8.80e-04,2.81e-01,6.17e+00])
+    plot_concentration([8.29e+03,1.92e-03,1.41e-01,8.80e-04,2.81e-01,6.17e+00],False)
+    plot_concentration([8.29e+03,1.92e-03,1.41e-01,8.80e-04,2.81e-01,6.17e+00],True)
     
 if __name__ == "__main__":
     main()
