@@ -5,9 +5,8 @@ from scipy.interpolate import interp1d
 from concentration_model import *
 from pressure_calibration import calibrate_pressure_model
 
-def concentration_model(t,M0,a,b,c,d,P0):
+def concentration_model(t,M0,a,b,c,d,P0,dash_ignore=False):
     ''' Uses the concentation model to compute the CO2 concentration at a list of time data given the model parameters.
-
         Parameters 
         ----------
         t : array-like
@@ -24,6 +23,9 @@ def concentration_model(t,M0,a,b,c,d,P0):
             Diffusion strength lumped parameter. 
         P0 : float
             Parameter - initial reservoir pressure. 
+        dash_ignore : boolean
+            True means to assume that the term C' = C(t) always in the ODE. False means that C' is modelled 
+            as a piecewise function.
         
         Returns
         -------
@@ -36,7 +38,7 @@ def concentration_model(t,M0,a,b,c,d,P0):
     # read concentration data
     ts_data,Cs_data = fetch_concentration_data()
     # use concentration model to compute CO2 concentrations at a range of times
-    ts,Cs = solve_concentration_ode(f=concentration_ode,t0=ts_data[0],t1=t[-1],dt=0.2,C0=Cs_data[0],pars=pars)
+    ts,Cs = solve_concentration_ode(f=concentration_ode,t0=ts_data[0],t1=t[-1],dt=0.2,C0=Cs_data[0],pars=pars,dash_ignore=dash_ignore)
     # interpolate solved concentrations for given list of times 
     f = interp1d(ts,Cs,kind='linear',bounds_error=False)
     Cs = f(t)
@@ -46,7 +48,6 @@ def concentration_model(t,M0,a,b,c,d,P0):
 
 def compute_residuals(Cs):
     ''' Compute the residuals of a list of modelled CO2 concentrations.
-
         Parameters
         ----------
         Cs : array-like
@@ -72,13 +73,15 @@ def compute_residuals(Cs):
     return residuals
 
 
-def plot_concentration_residuals(pars):
+def plot_concentration_residuals(pars,dash_ignore=False):
     ''' Creates a residual plot of a concentration model given a list of model parameters
-
         Parameters
         ----------
         pars : array-like
             List of model parameters in the form (M0, a, b, c, d, P0)
+        dash_ignore : boolean
+            True means to assume that the term C' = C(t) always in the ODE. False means that C' is modelled 
+            as a piecewise function.
         
         Returns 
         -------
@@ -87,7 +90,7 @@ def plot_concentration_residuals(pars):
     # read concentration data 
     ts_data,Cs_data = fetch_concentration_data()
     # solve concentration model using given parameters
-    ts,Ps = solve_concentration_ode(f=concentration_ode,t0=ts_data[0],t1=ts_data[-1],dt=0.2,C0=Cs_data[0],pars=pars)
+    ts,Ps = solve_concentration_ode(f=concentration_ode,t0=ts_data[0],t1=ts_data[-1],dt=0.2,C0=Cs_data[0],pars=pars,dash_ignore=dash_ignore)
     
     # interpolate CO2 concentration at the measured data points only 
     f = interp1d(ts,Ps,kind='linear',bounds_error=False)
@@ -107,7 +110,6 @@ def plot_concentration_residuals(pars):
 
 def calibrate_concentration_model(pars0):
     ''' Calibrates our concentration model using a steepest descent algorithm and a sum-of-squares misfit.
-
         Parameters
         ----------
         pars0 : array-like
@@ -149,13 +151,18 @@ def calibrate_concentration_model(pars0):
 
 def main():
     # initial guess of parameters
-    pars0 = [8.e+03, 2.5e-3,  3.e-01, 8.e-04, 5.e-01,  6.17e+00]
+    pars0 = [5.e+03, 2.5e-3,  3.e-01, 8.e-04, 5.e-01,  6.17e+00]
     # find best fit parameters
     pars = calibrate_concentration_model(pars0)
     # plot best fit model
-    plot_concentration(pars)
+    plot_concentration(pars,False)
     # plot residuals of best fit model
-    plot_concentration_residuals(pars)
+    plot_concentration_residuals(pars,False)
+
+    # now assume that C' is variate
+    plot_concentration(pars,True)
+    # plot residuals 
+    plot_concentration_residuals(pars,True)
 
 if __name__ == "__main__":
     main()
