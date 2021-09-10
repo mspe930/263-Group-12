@@ -82,6 +82,12 @@ def no_changes_injection(ax,pars,tend,Cend,lw=1.,alpha=1.,label='No changes'):
             Present time.
         Cend : float
             Concentration of CO2 at last measurement (at present time).
+        lw : float
+            Width of the plotted lines.
+        alpha : float
+            The transparency of the plotted lines.
+        label : string
+            The legend label for the plotted data. Special case if value is '_nolabel_' then no label is generated.
         
         Returns
         -------
@@ -135,6 +141,12 @@ def quadruple_injection(ax,pars,tend,Cend,lw=1.,alpha=1.,label='Quadruple inject
             Present time.
         Cend : float
             Concentration of CO2 at last measurement (at present time).
+        lw : float
+            Width of the plotted lines.
+        alpha : float
+            The transparency of the plotted lines.
+        label : string
+            The legend label for the plotted data. Special case if value is '_nolabel_' then no label is generated.
         
         Returns
         -------
@@ -186,6 +198,12 @@ def double_injection(ax,pars,tend,Cend,lw=1.,alpha=1.,label='Double injections')
             Present time.
         Cend : float
             Concentration of CO2 at last measurement (at present time).
+        lw : float
+            Width of the plotted lines.
+        alpha : float
+            The transparency of the plotted lines.
+        label : string
+            The legend label for the plotted data. Special case if value is '_nolabel_' then no label is generated.
         
         Returns
         -------
@@ -237,6 +255,12 @@ def half_injections(ax,pars,tend,Cend,lw=1.,alpha=1.,label='Half injections'):
             Present time.
         Cend : float
             Concentration of CO2 at last measurement (at present time).
+        lw : float
+            Width of the plotted lines.
+        alpha : float
+            The transparency of the plotted lines.
+        label : string
+            The legend label for the plotted data. Special case if value is '_nolabel_' then no label is generated.
         
         Returns
         -------
