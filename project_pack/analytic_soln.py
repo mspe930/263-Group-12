@@ -10,7 +10,7 @@ import concentration_calibration
 
 def solve_pressure_benchmark(M0, a, b, c, d, P0):
     '''--------------
-    This function creates plots of the analytical, numerical and steady state solutions for the provided pressure data
+    This function solves the analytical solution for the pressure ODE
 
     Parameters
     ----------
@@ -29,7 +29,14 @@ def solve_pressure_benchmark(M0, a, b, c, d, P0):
         Diffusion strength lumped parameter. Unused in pressure model but required for consistency with our concentration model.
     P0 : float
         Parameter - initial reservoir pressure.
-    --------------'''
+
+    Returns
+    ----------
+    t : array-like
+        values of time pressure is solved at
+    p_ana : array-like
+        solved analytical values of pressure
+    '''
 
     # retrieve pressure data from supplied file, save data into 2D array
     press_data = np.genfromtxt("cs_p.txt", delimiter=',', skip_header=1)
@@ -59,7 +66,7 @@ def solve_pressure_benchmark(M0, a, b, c, d, P0):
 
 def solve_concentration_benchmark(M0, a, b, c, d, P0):
     '''--------------
-    This function creates plots of the analytical,numerical and steady state solution for the provided concentration data
+    This function solves the analytical solution for the concentration ODE
 
     Parameters
     ----------
@@ -78,7 +85,15 @@ def solve_concentration_benchmark(M0, a, b, c, d, P0):
         Diffusion strength lumped parameter. Unused in pressure model but required for consistency with our concentration model.
     P0 : float
         Parameter - initial reservoir pressure.
-    --------------'''
+
+    Returns
+    ---------
+    t : array-like
+        values of time concentration is solved at
+    c_ana : array-like
+        solved analytical values of concentration
+
+    '''
     # retrieve concentration data from supplied data file
     conc_data = np.genfromtxt("cs_cc.txt", delimiter=',', skip_header=1)
 
@@ -106,8 +121,33 @@ def solve_concentration_benchmark(M0, a, b, c, d, P0):
 
 
 def plot_pressure_benchmark(M0, a, b, c, d, P0):
+    '''--------------
+    This function creates plots of the analytical,numerical and steady state solution for the provided concentration data
 
+    Parameters
+    ----------
+    M0 : float
+        Parameter - initial mass of CO2 in reservoir. This is unused in the pressure model but is required for
+        consistency with our concentration model.
+    a : float
+        Source/sink strength lumped parameter.
+    b : float
+        Recharge strength lumped parameter.
+    c : float
+        Slow drainage strength lumped parameter.
+    d : float
+        Diffusion strength lumped parameter. Unused in pressure model but required for consistency with our concentration model.
+    P0 : float
+        Parameter - initial reservoir pressure.
+
+    Returns
+    ---------
+    None
+    '''
+
+    # store parameters in array
     pars = [M0, a, b, c, d, P0]
+
     # retrieve pressure data from supplied file, save data into 2D array
     press_data = np.genfromtxt("cs_p.txt", delimiter=',', skip_header=1)
     # retrieve numerical solution from function 'pressure_calibration'
@@ -117,6 +157,7 @@ def plot_pressure_benchmark(M0, a, b, c, d, P0):
     # steady state solution as initial pressure value
     p_steady = np.full((80), P0)
 
+    # find solutions of benchmarked ODE
     t, p_ana = solve_pressure_benchmark(*pars)
 
     # plot the numerical, analytical, and steady state solutions on the same axes
@@ -134,7 +175,31 @@ def plot_pressure_benchmark(M0, a, b, c, d, P0):
 
 
 def plot_concentration_benchmark(M0, a, b, c, d, P0):
+    '''--------------
+    This function creates plots of the analytical, numerical and steady state solution for the provided pressure data
 
+    Parameters
+    ----------
+    M0 : float
+        Parameter - initial mass of CO2 in reservoir. This is unused in the pressure model but is required for
+        consistency with our concentration model.
+    a : float
+        Source/sink strength lumped parameter.
+    b : float
+        Recharge strength lumped parameter.
+    c : float
+        Slow drainage strength lumped parameter.
+    d : float
+        Diffusion strength lumped parameter. Unused in pressure model but required for consistency with our concentration model.
+    P0 : float
+        Parameter - initial reservoir pressure.
+
+    Returns
+    ---------
+    None
+    '''
+
+    # store parameters in array
     pars = [M0, a, b, c, d, P0]
 
     # retrieve concentration data from supplied data file
@@ -146,6 +211,7 @@ def plot_concentration_benchmark(M0, a, b, c, d, P0):
     # create array of steady state solution from initial value of concentration
     c_steady = np.full((80), conc_data[0, 1])
 
+    # find solution of benchmarked ODE
     t, c_ana = solve_concentration_benchmark(*pars)
 
     # plot analytic, numeric and steady state solutions
