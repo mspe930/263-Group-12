@@ -1,23 +1,23 @@
 import pressure_model
 import pressure_calibration
 import pressure_predictions
+import pressure_uncertainty
 import concentration_model
 import concentration_calibration
 import concentration_predictions
+import concentration_uncertainty
+import raw_data_plots
+import instability
+import analytic_soln
 
 def main():
+    # plot raw data
+    raw_data_plots.plot_raw_data()
+
     # initial guess of parameters
     pars0 = [5.e+03, 2.5e-3,  3.e-01, 8.e-04, 5.e-01,  6.17e+00]
-
-    '''
-    Don't think we need these plots.
-    '''
-    # plot initial pressure model
-    #pressure_model.plot_pressure(pars0)
-    #pressure_calibration.plot_pressure_residuals(pars0)
-    # plot initial concentration model
-    #concentration_model.plot_concentration(pars0)
-    #concentration_calibration.plot_concentration_residuals(pars0)
+    # calibrated parameters
+    pars = concentration_calibration.calibrate_concentration_model(pars0)
 
     # plot benchmarked pressure model against numerical soln
     analytic_soln.plot_pressure_benchmark(*pars0)
@@ -25,35 +25,27 @@ def main():
     analytic_soln.plot_concentration_benchmark(*pars0)
     # plot pressure numerical soln at large time step
     instability.plot_pressure_time_step(*pars0, t_step=10)
-    # plot concentration numerical soln at large time step
-    instability.plot_concentration_time_step(*pars0, t_step=10)
-    
-    # calibrate model to fit best fit parameters
-    # with slow drainage initially zero i.e. c = 0
-    pars = concentration_calibration.calibrate_concentration_model(pars0)
-    # slow drainage c = 0
-    pars[3] = 0.
+
+    # initially assume that C' = C(t) always
     pressure_model.plot_pressure(pars)  # pressure plot
     pressure_calibration.plot_pressure_residuals(pars) # pressure residual plot
-    concentration_model.plot_concentration(pars)    # concentration plot
-    concentration_calibration.plot_concentration_residuals(pars) # concentration residual plot
+    concentration_model.plot_concentration(pars,False)    # concentration plot
+    concentration_calibration.plot_concentration_residuals(pars,False) # concentration residual plot
 
-    # recallibrate model with slow drainage
-    pars = concentration_calibration.calibrate_concentration_model(pars0)
-    # plot best fit pressure model
-    pressure_model.plot_pressure(pars)
-    pressure_calibration.plot_pressure_residuals(pars)
-    # plot best fit concentration model
-    concentration_model.plot_concentration(pars)
-    concentration_calibration.plot_concentration_residuals(pars)
+    # now assume that C' takes on a piecewise form given in ODE
+    concentration_model.plot_concentration(pars,True)    # concentration plot
+    concentration_calibration.plot_concentration_residuals(pars,True) # concentration residual plot
+
 
     # plot what-ifs of pressure model
     pressure_predictions.plot_predictions(pars)
     # plot what-ifs of concentration model
     concentration_predictions.plot_predictions(pars)
 
-    
-
+    # plot what-ifs with uncertainty of pressure model
+    pressure_uncertainty.plot_pressure_posterior(pars)
+    # plot what-ifs with uncertainty of concentration model
+    concentration_uncertainty.plot_predictions_uncert(pars)
 
 if __name__ == "__main__":
     main()
