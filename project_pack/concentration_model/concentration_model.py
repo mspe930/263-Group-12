@@ -174,11 +174,13 @@ def solve_concentration_ode(f,t0,t1,dt,C0,pars=[],dash_ignore=False,benchmarkq=F
     # find CO2 injection rates for each time
     if benchmarkq:
         qs = np.array([50.]*len(ts))    # when benchmarking take injection rate = 50 = const.
+        # solve for pressures 
+        ts,Ps = solve_pressure_ode(f=pressure_ode,t0=t0,t1=t1,dt=dt,P0=pars[-1],pars=pars)
     else:
         qs = interpolate_injection(ts)  # when not benchmarking qs is interpolated
+        # solve for pressures 
+        ts,Ps = solve_pressure_ode(f=pressure_ode,t0=t0,t1=t1,dt=dt,P0=pars[-1],pars=pars)
     
-    # solve for pressures 
-    ts,Ps = solve_pressure_ode(f=pressure_ode,t0=t0,t1=t1,dt=dt,P0=pars[-1],pars=pars)
 
     # loops through each step
     for i in range(npoints-1):
