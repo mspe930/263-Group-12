@@ -5,11 +5,9 @@ from matplotlib import pyplot as plt
 
 def fetch_pressure_data():
     ''' Reads the pressure data on the cs_p.txt file.
-
         Parameters
         ----------
         None
-
         Returns 
         -------
         ts_data : array-like
@@ -57,7 +55,6 @@ def pressure_ode(t, P, q, dqdt, M0, a, b, c, d, P0):
         -------
         dPdt : float
             Time derivative of reservoir pressure (dependent variable).
-
         Notes
         -----
         Parameters must be passed in the above order.
@@ -70,7 +67,6 @@ def pressure_ode(t, P, q, dqdt, M0, a, b, c, d, P0):
 def interpolate_mass_flow(ts):
     ''' Reads injection and production rates, interpolates this data, and calculates
         the net mass flow into the reservoir. 
-
         Parameters
         ----------
         ts : array-like
@@ -101,7 +97,6 @@ def interpolate_mass_flow(ts):
 
 def compute_dqdt(ts, qs):
     ''' Computes the time derivative of net mass flow rates, dq/dt. 
-
         Parameters
         ----------
         ts : array-like
@@ -118,7 +113,6 @@ def compute_dqdt(ts, qs):
         -----
         The vectors ts and qs must be paired measurements, i.e. qs[i] correponds to the 
         mass flow rate measured at time ts[i], for all i.
-
         The algorithm used requires a very small step size for accuracy. Hence, the data 
         should be interpolated before passing it into this function.
     '''
@@ -135,9 +129,8 @@ def compute_dqdt(ts, qs):
     return dqdts 
 
 
-def solve_pressure_ode(f,t0,t1,dt,P0,pars=[]):
+def solve_pressure_ode(f,t0,t1,dt,P0,pars=[],benchmarkq=False):
     ''' Solves pressure ODE numerically using the Improved Euler Method.
-
         Parameters
         ----------
         f : callable
@@ -152,6 +145,8 @@ def solve_pressure_ode(f,t0,t1,dt,P0,pars=[]):
             Initial pressure value of solution.
         pars : array-like
             List of lumped parameters passed to function f.
+        benchmarkq : boolean
+            True is when benchmarking and taking net mass extraction rate = 150 = const. False otherwise.
         
         Returns
         -------
@@ -168,7 +163,6 @@ def solve_pressure_ode(f,t0,t1,dt,P0,pars=[]):
             (iii) forcing term, q
             (iv)  time derivative of forcing term, dq/dt
             (v)   all other parameters
-
     '''
     # compute number of steps taken for IEM
     npoints = int((t1-t0)/dt + 1)
@@ -178,7 +172,11 @@ def solve_pressure_ode(f,t0,t1,dt,P0,pars=[]):
     Ps[0] = P0
 
     # find the net mass flow rate for each time
-    qs = interpolate_mass_flow(ts)
+    if benchmarkq:
+        qs = np.array([150.]*len(ts))   # when benchmarking assume q = 150 = const.
+    else:
+        qs = interpolate_mass_flow(ts)  # when not benchmarking interpolate q
+
     # find time derivative of net mass flow rate for each time
     dqdts = compute_dqdt(ts,qs)
 
@@ -196,7 +194,6 @@ def solve_pressure_ode(f,t0,t1,dt,P0,pars=[]):
 
 def plot_pressure(pars):
     ''' Plots the LP pressure model against measured data given a list of model parameters.
-
         Parameters
         ----------
         pars : array-like
@@ -222,7 +219,7 @@ def plot_pressure(pars):
     # plots our pressure model
     f,ax = plt.subplots(1,1)
     ax.plot(ts_data,Ps_data,'kx',label='Measured Data')
-    ax.plot(ts_model,Ps_model,'r-',label='Fitted Model:\n a = {:1.3e}\n b = {:1.3e}\n c = {:1.3e}'.format(pars[1],pars[2],pars[3]))
+    ax.plot(ts_model,Ps_model,'r-',label='Fitted Model:\n a = {:1.2e}\n b = {:1.2e}\n c = {:1.2e}'.format(pars[1],pars[2],pars[3]))
     ax.set_xlabel('Year of observation [A.D.]')
     ax.set_ylabel('Reservoir pressure [MPa]')
     ax.legend()
@@ -236,5 +233,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-    
