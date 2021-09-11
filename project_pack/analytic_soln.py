@@ -4,8 +4,8 @@ import numpy as np
 from matplotlib import pyplot as plt
 from numpy.core.fromnumeric import shape
 from numpy.lib.npyio import genfromtxt, load
-import pressure_calibration
-import concentration_calibration
+import pressure_model
+import concentration_model
 
 
 def solve_pressure_benchmark(M0, a, b, c, d, P0):
@@ -50,8 +50,8 @@ def solve_pressure_benchmark(M0, a, b, c, d, P0):
     p_ana = np.zeros(80)
 
     # initialise constants
-    a = 2.5*(10 ** (-1))
-    b = 1 * (10 ** (-1))
+    a = 3.2 *(10 ** (-1))
+    b = 2.6 * (10 ** (-1))
 
     # set initial pressure equal to one from given data
     P0 = press_data[0, 1]
@@ -107,8 +107,8 @@ def solve_concentration_benchmark(M0, a, b, c, d, P0):
 
     # initialise constants
     C0 = conc_data[0, 1]
-    k = 7/M0
-    d = 0.5 * 10 ** (-1)
+    k = 47/M0
+    d = 5 * 10 ** (-1)
     L = (k * C0 - k) / (k + d)
 
     # for each time value solve for concentration value using benchmarking equation
@@ -151,8 +151,8 @@ def plot_pressure_benchmark(M0, a, b, c, d, P0):
     # retrieve pressure data from supplied file, save data into 2D array
     press_data = np.genfromtxt("cs_p.txt", delimiter=',', skip_header=1)
     # retrieve numerical solution from function 'pressure_calibration'
-    p_num = pressure_calibration.pressure_model(
-        press_data[:, 0], M0, a, b, c, d, P0)
+    t_num, p_num = pressure_model.solve_pressure_ode(
+        f=pressure_model.pressure_ode, t0=press_data[0, 0], t1=press_data[-1, 0], dt=1, P0=press_data[0, 1], pars=pars, benchmarkq=True)
 
     # steady state solution as initial pressure value
     p_steady = np.full((80), P0)
@@ -163,12 +163,12 @@ def plot_pressure_benchmark(M0, a, b, c, d, P0):
     # plot the numerical, analytical, and steady state solutions on the same axes
     # all labelled respectively
     f, ax = plt.subplots(nrows=1, ncols=1)
+    ax.plot(t_num, p_num, 'kx', label="numerical solution")
     ax.plot(t, p_ana, 'b', label="analytical solution")
-    ax.plot(press_data[:, 0], p_num, 'k-', label="numerical solution")
     ax.plot(t, p_steady, 'b--', label="steady state")
-    ax.set_title("benchmark: a=0.25, b=0.1, c=0.00")
+    ax.set_title("pressure benchmark: \na=0.32, b=0.26, c=0.00, q=150.00")
     ax.set_ylabel("Pressure [MPa]")
-    ax.set_xlabel("Year")
+    ax.set_xlabel("Time [Year]")
     ax.legend()
 
     plt.show()
@@ -205,8 +205,8 @@ def plot_concentration_benchmark(M0, a, b, c, d, P0):
     # retrieve concentration data from supplied data file
     conc_data = np.genfromtxt("cs_cc.txt", delimiter=',', skip_header=1)
     # solve for numerical concentration, using function concentration_model from the file 'concentration_calibration'
-    c_num = concentration_calibration.concentration_model(
-        conc_data[:, 0], M0, a, b, c, d, P0)
+    t_num, c_num = concentration_model.solve_concentration_ode(
+        f=concentration_model.concentration_ode, t0=conc_data[0, 0], t1=conc_data[-1, 0], dt=0.5, C0=conc_data[0, 1], pars=pars, dash_ignore=False, benchmarkq=True)
 
     # create array of steady state solution from initial value of concentration
     c_steady = np.full((80), conc_data[0, 1])
@@ -216,12 +216,12 @@ def plot_concentration_benchmark(M0, a, b, c, d, P0):
 
     # plot analytic, numeric and steady state solutions
     f, ax = plt.subplots(nrows=1, ncols=1)
+    ax.plot(t_num, c_num, 'kx', label="numerical solution")
     ax.plot(t, c_ana, 'b', label="analytical solution")
-    ax.plot(conc_data[:, 0], c_num, 'k-', label="numerical solution")
     ax.plot(t, c_steady, 'b--', label="steady state")
-    ax.set_title("Benchmark: q(co2) = 7, q(water) = 0, d = 0.05")
+    ax.set_title("concentration benchmark: \nq(co2) = 47.00, q(water) = 0.00, d = 0.50, q=50.00")
     ax.set_ylabel("CO2 Concentration [wt%]")
-    ax.set_xlabel("Year")
+    ax.set_xlabel("Time [Year]")
     ax.legend()
 
     plt.show()
