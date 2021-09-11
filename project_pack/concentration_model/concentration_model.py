@@ -129,7 +129,7 @@ def interpolate_injection(ts):
     return qs
 
 
-def solve_concentration_ode(f,t0,t1,dt,C0,pars=[],dash_ignore=False):
+def solve_concentration_ode(f,t0,t1,dt,C0,pars=[],dash_ignore=False,benchmarkq=False):
     ''' Solves CO2 concentration ODE numerically using the Improved Euler Method.
         Parameters
         ----------
@@ -150,6 +150,8 @@ def solve_concentration_ode(f,t0,t1,dt,C0,pars=[],dash_ignore=False):
         dash_ignore : boolean
             True means to assume that the term C' = C(t) always in the ODE. False means that C' is modelled 
             as a piecewise function.
+        benchmarkq : boolean
+            True is used when benchmarking and solves the ODE for a constant q = 50. False is otherwise.
 
         Returns
         -------
@@ -170,7 +172,11 @@ def solve_concentration_ode(f,t0,t1,dt,C0,pars=[],dash_ignore=False):
     cs[0] = C0
 
     # find CO2 injection rates for each time
-    qs = interpolate_injection(ts)
+    if benchmarkq:
+        qs = np.array([50.]*len(ts))    # when benchmarking take injection rate = 50 = const.
+    else:
+        qs = interpolate_injection(ts)  # when not benchmarking qs is interpolated
+    
     # solve for pressures 
     ts,Ps = solve_pressure_ode(f=pressure_ode,t0=t0,t1=t1,dt=dt,P0=pars[-1],pars=pars)
 
@@ -194,7 +200,7 @@ def plot_concentration(pars,dash_ignore=False):
         dash_ignore : boolean
             True means to assume that the term C' = C(t) always in the ODE. False means that C' is modelled 
             as a piecewise function.
-            
+
         Returns
         -------
         None
@@ -213,7 +219,7 @@ def plot_concentration(pars,dash_ignore=False):
     # plots model
     f,ax = plt.subplots(1,1)
     ax.plot(ts_data,Cs_data,'kx',label='Measured Data')
-    ax.plot(ts_model,Cs_model,'r-',label='Fitted Model\n a = {:1.2e}\n b = {:1.2e}\n c = {:1.2e}\n d = {:1.2e}\n M0 = {:1.2e}'.format(*pars[1:]))
+    ax.plot(ts_model,Cs_model,'r-',label='Fitted Model\n M0 = {:1.2e}\n a = {:1.2e}\n b = {:1.2e}\n c = {:1.2e}\n d = {:1.2e}'.format(*pars[:-1]))
     ax.legend()
     ax.set_title('Fitted LP concentration model')
     ax.set_xlabel('Year of measurement [A.D.]')
