@@ -13,7 +13,6 @@ from concentration_model import *
 
 def pressure_time_step(t, M0, a, b, c, d, P0, t_step):
     '''function solves for the numeric solution of pressure at a variable time step
-
     Parameters
     ----------
     t : array-like
@@ -33,12 +32,10 @@ def pressure_time_step(t, M0, a, b, c, d, P0, t_step):
         Parameter - initial reservoir pressure.
     t_step : int
         Determines the step size used when solving the ODE
-
     Returns:
     ---------
     Ps : array-like
         List of pressures for given parameters and paired times.
-
     '''
 
     # store input parameters as an array
@@ -58,7 +55,6 @@ def pressure_time_step(t, M0, a, b, c, d, P0, t_step):
 
 def concentration_time_step(t, M0, a, b, c, d, P0, t_step):
     '''function solves for the numeric solution of concentration at a large time step
-
     Parameters
     ----------
     t : array-like
@@ -78,12 +74,10 @@ def concentration_time_step(t, M0, a, b, c, d, P0, t_step):
         Parameter - initial reservoir pressure.
     t_step : int
         Determines the step size used when solving the ODE
-
     Returns:
     ---------
     Cs : array-like
         List of pressures for given parameters and paired times.
-
     '''
 
     # store input parameters as an array
@@ -103,7 +97,6 @@ def concentration_time_step(t, M0, a, b, c, d, P0, t_step):
 
 def plot_pressure_time_step(M0, a, b, c, d, P0, t_step):
     '''function plots the numeric, analytical, and steady state solutions of pressure ODE
-
     Parameters
     ----------
     M0 : float
@@ -121,7 +114,6 @@ def plot_pressure_time_step(M0, a, b, c, d, P0, t_step):
         Parameter - initial reservoir pressure.
     t_step : int
         Determines the step size used when solving the ODE
-
     Returns:
     ---------
     None
@@ -144,7 +136,7 @@ def plot_pressure_time_step(M0, a, b, c, d, P0, t_step):
     ax.plot(t[:], p_num, 'kx', label="numerical solution")
     ax.plot(t_ana, p_ana, 'b', label="analytical solution")
     ax.plot(t, p_steady, 'b--', label="steady state")
-    ax.set_title("Instability at large time-step")
+    ax.set_title("Pressure ODE: instability at large time-step")
     ax.set_ylabel("Pressure [MPa]")
     ax.set_xlabel("Time [Year]")
     ax.legend()
@@ -154,7 +146,6 @@ def plot_pressure_time_step(M0, a, b, c, d, P0, t_step):
 
 def plot_concentration_time_step(M0, a, b, c, d, P0, t_step):
     '''function plots the numeric, analytical, and steady state solutions of concentration ODE
-
     Parameters
     ----------
     M0 : float
@@ -172,7 +163,6 @@ def plot_concentration_time_step(M0, a, b, c, d, P0, t_step):
         Parameter - initial reservoir pressure.
     t_step : int
         Determines the step size used when solving the ODE
-
     Returns:
     ---------
     None
@@ -195,8 +185,8 @@ def plot_concentration_time_step(M0, a, b, c, d, P0, t_step):
     ax.plot(t[:], c_num, 'kx', label="numerical solution")
     ax.plot(t_ana, c_ana, 'b', label="analytical solution")
     ax.plot(t, c_steady, 'b--', label="steady state")
-    ax.set_title("Instability at large time-step")
-    ax.set_ylabel("Concentration [wt%]")
+    ax.set_title("Concentration ODE: instability at large time-step")
+    ax.set_ylabel("CO2 concentration [wt%]")
     ax.set_xlabel("Time [Year]")
     ax.legend()
 
