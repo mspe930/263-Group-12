@@ -14,6 +14,7 @@ import raw_data
 def main():
     # plot raw data
     raw_data_plots.plot_raw_data()
+    # alternative plot for raw data
     raw_data.main()
 
     # initial guess of parameters
