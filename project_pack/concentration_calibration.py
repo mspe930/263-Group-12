@@ -102,7 +102,7 @@ def plot_concentration_residuals(pars,dash_ignore=False):
     f,ax = plt.subplots(1,1)
     ax.plot(ts_data,residuals,'ro',markerSize=8,markerfacecolor='none',label='Fitted Model:\n M0 = {:1.2e}\n a = {:1.2e}\n b = {:1.2e}\n c = {:1.2e}\n d = {:1.2e}'.format(*pars[:-1]))
     ax.set_xlabel('Year of observation [A.D.]')
-    ax.set_ylabel('Residuals [MPa]')
+    ax.set_ylabel('Residuals [wt%]')
     ax.set_title('Residuals plot of fitted LP CO2 concentration model')
     ax.legend()
     plt.show()
