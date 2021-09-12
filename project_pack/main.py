@@ -9,10 +9,12 @@ import concentration_uncertainty
 import raw_data_plots
 import instability
 import analytic_soln
+import raw_data
 
 def main():
     # plot raw data
     raw_data_plots.plot_raw_data()
+    raw_data.main()
 
     # initial guess of parameters
     pars0 = [5.e+03, 2.5e-3,  3.e-01, 8.e-04, 5.e-01,  6.17e+00]
