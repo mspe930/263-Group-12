@@ -34,13 +34,12 @@ def main():
     # initially assume that C' = C(t) always
     pressure_model.plot_pressure(pars)  # pressure plot
     pressure_calibration.plot_pressure_residuals(pars) # pressure residual plot
-    concentration_model.plot_concentration(pars,False)    # concentration plot
-    concentration_calibration.plot_concentration_residuals(pars,False) # concentration residual plot
-
-    # now assume that C' takes on a piecewise form given in ODE
     concentration_model.plot_concentration(pars,True)    # concentration plot
     concentration_calibration.plot_concentration_residuals(pars,True) # concentration residual plot
 
+    # now assume that C' takes on a piecewise form given in ODE
+    concentration_model.plot_concentration(pars,False)    # concentration plot
+    concentration_calibration.plot_concentration_residuals(pars,False) # concentration residual plot
 
     # plot what-ifs of pressure model
     pressure_predictions.plot_predictions(pars)
