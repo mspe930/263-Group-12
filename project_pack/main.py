@@ -25,6 +25,8 @@ def main():
     analytic_soln.plot_concentration_benchmark(*pars0)
     # plot pressure numerical soln at large time step
     instability.plot_pressure_time_step(*pars0, t_step=10)
+    # plot concentraion numerical soln at large time step
+    instability.plot_concentration_time_step(*pars0, t_step=10)
 
     # initially assume that C' = C(t) always
     pressure_model.plot_pressure(pars)  # pressure plot
