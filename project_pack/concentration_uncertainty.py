@@ -5,7 +5,7 @@ from concentration_predictions import *
 from concentration_calibration import concentration_model
 from matplotlib import pyplot as plt
 from scipy.optimize import curve_fit
-
+import covariance_estimate as ce
 
 def plot_predictions_uncert(pars):
     ''' Generates four what-if scenarios (x4, x2, x1 and x0.5 injection rates) using posterior samples, and plots these alongside 
@@ -32,7 +32,7 @@ def plot_predictions_uncert(pars):
     ax.plot(ts,Cs,'k-',label='Best fit model') 
 
     # sets a sensible covariance matrix for data 
-    cov = [[1.e-4]*6]*6
+    cov = ce.fo_cov_estimate(pars)
 
     # sets a sensible standard deviation for data measurements 
     sigma = [.25]*len(ts_data)

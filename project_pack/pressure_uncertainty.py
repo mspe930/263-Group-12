@@ -4,6 +4,7 @@ from matplotlib import pyplot as plt
 from pressure_calibration import *
 from pressure_model import *
 from pressure_predictions import *
+import covariance_estimate as ce
 
 def plot_pressure_posterior(pars):
     ''' Generates four what-if scenarios (x4, x2, x1 and x0.5 injection rates) using posterior samples, and plots these alongside 
@@ -30,7 +31,7 @@ def plot_pressure_posterior(pars):
     ax.plot(ts,Ps,'k-',label='Best fit model') 
 
     # sets a sensible covariance matrix for data 
-    cov = [[1.e-8]*6]*6
+    cov = ce.fo_cov_estimate(pars)
 
     # sets a sensible standard deviation for data measurements 
     sigma = [.25]*len(ts_data)
