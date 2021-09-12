@@ -60,6 +60,9 @@ def plot_predictions_uncert(pars):
         quadruple_injection(ax,p,ts[-1],Cs[-1],lw=0.4,alpha=0.2,label='_nolabel_')
     ax.plot([],[],'m-',label='Quadruple injections')
     
+    ax.set_xlabel('Year [A.D.]') # sets x axis label
+    ax.set_ylabel('CO2 Concentration [wt%]') # set y axis label
+    
     # adds title and legend and shows plot
     ax.set_title('Ohaaki LP concentration model: scenario forecasts with uncertainty')
     ax.legend()
